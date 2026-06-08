@@ -5,22 +5,27 @@
     <color name="white">#FFFFFF</color>
     <color name="card">#FFFFFF</color>
 
-    <!-- Pink / peach pastel palette (cat care theme) -->
-    <color name="pink">#E892A8</color>
-    <color name="pink_dark">#D97A93</color>
-    <color name="pink_light">#FAD9E1</color>
-    <color name="pink_bg">#FCEFF3</color>
-    <color name="peach">#FCE4C9</color>
-    <color name="cream">#FBF4E6</color>
-    <color name="yellow">#FBE08A</color>
-    <color name="mint">#DCEBD8</color>
-    <color name="green">#9FCF97</color>
-    <color name="heart">#EC6A6A</color>
+    <!-- Y2K / webcore pastel palette -->
+    <color name="pink">#F49AC2</color>
+    <color name="pink_dark">#E06A9E</color>
+    <color name="pink_light">#FBD3E4</color>
+    <color name="pink_bg">#FDEAF3</color>
+    <color name="peach">#FFD9B8</color>
+    <color name="cream">#FFF4D6</color>
+    <color name="yellow">#FFE08A</color>
+    <color name="mint">#B8E6D0</color>
+    <color name="green">#7FCF9B</color>
+    <color name="lavender">#D7C4F0</color>
+    <color name="babyblue">#BFE5F2</color>
+    <color name="heart">#F4789A</color>
+
+    <!-- Retro window outline -->
+    <color name="outline">#E79BC3</color>
 
     <!-- Text -->
-    <color name="text_primary">#5E5654</color>
-    <color name="text_secondary">#B3A9A6</color>
-    <color name="divider">#EFE7E4</color>
+    <color name="text_primary">#5A4A55</color>
+    <color name="text_secondary">#AE9FB0</color>
+    <color name="divider">#EAD9EC</color>
 
     <color name="black">#000000</color>
 </resources>

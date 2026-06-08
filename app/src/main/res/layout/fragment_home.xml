@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/bg"
+    android:background="@drawable/bg_grid"
     android:fillViewport="true">
 
     <LinearLayout
@@ -30,6 +30,8 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/home_greeting"
+                    android:fontFamily="monospace"
+                    android:letterSpacing="0.02"
                     android:textColor="@color/text_primary"
                     android:textSize="22sp"
                     android:textStyle="bold" />
@@ -54,80 +56,81 @@
 
         </LinearLayout>
 
-        <!-- 오늘의 냥이 hero card -->
+        <!-- 오늘의 냥이 hero window -->
         <LinearLayout
             android:id="@+id/cardTodayCat"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="20dp"
             android:background="@drawable/bg_card"
-            android:foreground="?attr/selectableItemBackground"
             android:clickable="true"
             android:elevation="2dp"
             android:focusable="true"
-            android:orientation="vertical"
-            android:padding="18dp">
+            android:orientation="vertical">
+
+            <LinearLayout style="@style/WindowTitleBar">
+
+                <TextView
+                    style="@style/WindowTitleText"
+                    android:text="오늘의 냥이.EXE" />
+
+                <ImageView
+                    style="@style/WindowDots"
+                    android:contentDescription="@string/home_today_cat"
+                    android:src="@drawable/ic_window_dots" />
+
+            </LinearLayout>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="2dp"
+                android:background="@color/outline" />
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="@string/home_today_cat"
-                    android:textColor="@color/text_primary"
-                    android:textSize="16sp"
-                    android:textStyle="bold" />
+                android:orientation="vertical"
+                android:padding="16dp">
 
                 <ImageView
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
+                    android:layout_width="match_parent"
+                    android:layout_height="150dp"
+                    android:adjustViewBounds="true"
                     android:contentDescription="@string/home_today_cat"
-                    android:src="@drawable/ic_heart" />
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/cat_blue" />
+
+                <TextView
+                    android:id="@+id/tvProgressCount"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:fontFamily="monospace"
+                    android:textColor="@color/text_primary"
+                    android:textSize="15sp"
+                    android:textStyle="bold"
+                    tools:text="오늘 할 일 3 / 5 완료" />
+
+                <com.google.android.material.progressindicator.LinearProgressIndicator
+                    android:id="@+id/progressBar"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    app:indicatorColor="@color/pink"
+                    app:trackColor="@color/pink_bg"
+                    app:trackCornerRadius="100dp"
+                    app:trackThickness="10dp" />
+
+                <TextView
+                    android:id="@+id/tvProgressCaption"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="@string/home_progress_caption"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="12sp" />
 
             </LinearLayout>
-
-            <ImageView
-                android:layout_width="match_parent"
-                android:layout_height="150dp"
-                android:layout_marginTop="6dp"
-                android:adjustViewBounds="true"
-                android:contentDescription="@string/home_today_cat"
-                android:scaleType="fitCenter"
-                android:src="@drawable/cat_blue" />
-
-            <TextView
-                android:id="@+id/tvProgressCount"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="6dp"
-                android:textColor="@color/text_primary"
-                android:textSize="15sp"
-                android:textStyle="bold"
-                tools:text="오늘 할 일 3 / 5 완료" />
-
-            <com.google.android.material.progressindicator.LinearProgressIndicator
-                android:id="@+id/progressBar"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                app:indicatorColor="@color/pink"
-                app:trackColor="@color/pink_bg"
-                app:trackCornerRadius="100dp"
-                app:trackThickness="10dp" />
-
-            <TextView
-                android:id="@+id/tvProgressCaption"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:text="@string/home_progress_caption"
-                android:textColor="@color/text_secondary"
-                android:textSize="12sp" />
 
         </LinearLayout>
 
