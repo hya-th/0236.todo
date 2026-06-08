@@ -24,15 +24,35 @@
         app:buttonCompat="@drawable/btn_todo_check"
         app:buttonTint="@null" />
 
-    <TextView
-        android:id="@+id/tvTitle"
+    <LinearLayout
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="10dp"
         android:layout_weight="1"
-        android:textColor="@color/text_primary"
-        android:textSize="16sp"
-        tools:text="아침 스트레칭 하기" />
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/tvTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/text_primary"
+            android:textSize="16sp"
+            tools:text="아침 스트레칭 하기" />
+
+        <TextView
+            android:id="@+id/tvMemo"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="3dp"
+            android:ellipsize="end"
+            android:maxLines="2"
+            android:textColor="@color/text_secondary"
+            android:textSize="12sp"
+            android:visibility="gone"
+            tools:text="레퍼런스 정리 후 초안 작성하기"
+            tools:visibility="visible" />
+
+    </LinearLayout>
 
     <TextView
         android:id="@+id/tvTime"

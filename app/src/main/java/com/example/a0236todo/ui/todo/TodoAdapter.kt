@@ -26,6 +26,9 @@ class TodoAdapter(
             binding.tvTime.text = item.time
             binding.tvTime.visibility = if (item.time.isBlank()) View.GONE else View.VISIBLE
 
+            binding.tvMemo.text = item.memo
+            binding.tvMemo.visibility = if (item.memo.isBlank()) View.GONE else View.VISIBLE
+
             // 완료된 항목은 취소선 + 흐리게 표시
             binding.tvTitle.paintFlags = if (item.isDone) {
                 binding.tvTitle.paintFlags or Paint.STRIKE_THRU_TEXT_FLAG
