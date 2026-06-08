@@ -4,8 +4,10 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.a0236todo.R
 import com.example.a0236todo.databinding.DialogAddTodoBinding
@@ -23,7 +25,12 @@ class TodoFragment : Fragment() {
     private val adapter by lazy {
         TodoAdapter(
             onToggle = { viewModel.toggle(it) },
-            onDelete = { viewModel.delete(it) }
+            onClick = { todo ->
+                findNavController().navigate(
+                    R.id.todoDetailFragment,
+                    bundleOf("todoId" to todo.id)
+                )
+            }
         )
     }
 
@@ -40,23 +47,27 @@ class TodoFragment : Fragment() {
         binding.rvTodos.layoutManager = LinearLayoutManager(requireContext())
         binding.rvTodos.adapter = adapter
 
+        binding.btnBack.setOnClickListener { findNavController().navigate(R.id.homeFragment) }
         binding.btnPrev.setOnClickListener { viewModel.prevDay() }
         binding.btnNext.setOnClickListener { viewModel.nextDay() }
-        binding.fabAdd.setOnClickListener { showAddDialog() }
+        binding.btnAdd.setOnClickListener { showAddDialog() }
 
         viewModel.date.observe(viewLifecycleOwner) { key ->
-            binding.tvSelectedDate.text = DateUtils.display(key)
+            binding.tvSelectedDate.text = DateUtils.displayShort(key)
         }
         viewModel.todos.observe(viewLifecycleOwner) { list ->
             adapter.submitList(list)
             binding.emptyView.visibility = if (list.isEmpty()) View.VISIBLE else View.GONE
+
+            val done = list.count { it.isDone }
+            binding.tvProgress.text = "$done / ${list.size} 완료"
         }
     }
 
     private fun showAddDialog() {
         val dialogBinding = DialogAddTodoBinding.inflate(layoutInflater)
         MaterialAlertDialogBuilder(requireContext())
-            .setTitle(R.string.todo_add)
+            .setTitle(R.string.action_add)
             .setView(dialogBinding.root)
             .setPositiveButton(R.string.action_add) { _, _ ->
                 viewModel.add(dialogBinding.etTitle.text?.toString().orEmpty())

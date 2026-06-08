@@ -9,21 +9,60 @@
     <string name="nav_weekly">위클리</string>
 
     <!-- Home -->
-    <string name="home_greeting">오늘도 반가워요 🐱</string>
-    <string name="home_today_todo">오늘의 할 일</string>
+    <string name="home_greeting">Good morning! 🐱</string>
+    <string name="home_greeting_sub">오늘도 냥이와 함께, 할 일 해보자냥! 🐾</string>
+    <string name="home_today_cat">오늘의 냥이</string>
+    <string name="home_progress_caption">밥그릇이 채워지고 있어요</string>
+    <string name="home_all_todo">전체 todo</string>
+    <string name="home_monthly">월간 플래너</string>
+    <string name="home_weekly">위클리 플래너</string>
     <string name="home_progress_empty">아직 오늘 할 일이 없어요</string>
 
     <!-- Todo -->
-    <string name="todo_title">데일리 플래너</string>
-    <string name="todo_add">할 일 추가</string>
+    <string name="todo_title">오늘의 할 일</string>
+    <string name="todo_feed_hint">체크하면 냥이 밥 주기</string>
+    <string name="todo_add">+ 할 일 추가</string>
     <string name="todo_empty">할 일이 없어요\n오늘 할 일을 추가해 보세요!</string>
     <string name="todo_input_hint">할 일을 입력하세요</string>
+
+    <!-- Todo detail -->
+    <string name="detail_title">할 일 상세</string>
+    <string name="detail_date">날짜</string>
+    <string name="detail_time">시간</string>
+    <string name="detail_reminder">고양이 알림</string>
+    <string name="detail_reminder_sub">시간이 되면 냥이가 알려줘요</string>
+    <string name="detail_priority">우선순위 (냥이 기준)</string>
+    <string name="priority_low">낮음</string>
+    <string name="priority_normal">보통</string>
+    <string name="priority_high">높음</string>
+    <string name="detail_memo">메모</string>
+    <string name="detail_memo_hint">메모를 입력하세요</string>
+
+    <!-- Calendar -->
+    <string name="calendar_bowl_title">이번 달 냥이 밥그릇</string>
+    <string name="calendar_streak_title">연속 급여 (출석체크)</string>
+
+    <!-- Calendar detail -->
+    <string name="cd_reward_title">냥이 하루 보상</string>
+    <string name="cd_reward_sub">오늘 할 일을 꾸준히 채웠어요!</string>
+    <string name="cd_write_diary">일기 쓰기</string>
+    <string name="cd_view_diary">보기</string>
+
+    <!-- Weekly -->
+    <string name="weekly_title">이번 주 플래너</string>
+    <string name="weekly_feed_title">이번 주 냥이 급여 현황</string>
+    <string name="weekly_concept_title">컨셉 : 생산성은 냥이 돌보기</string>
+    <string name="weekly_concept_body">할 일을 완료할 때마다 냥이의 밥그릇이 채워지고, 냥이가 더 행복해져요 😊</string>
+
+    <!-- Common actions -->
     <string name="action_add">추가</string>
     <string name="action_cancel">취소</string>
     <string name="action_delete">삭제</string>
-
-    <!-- Placeholder -->
+    <string name="action_done">완료</string>
+    <string name="action_save">저장</string>
     <string name="coming_soon">곧 만나요!</string>
-    <string name="prev_day">이전 날</string>
-    <string name="next_day">다음 날</string>
+    <string name="prev_day">이전</string>
+    <string name="next_day">다음</string>
+    <string name="cd_back">뒤로</string>
+    <string name="notifications">알림</string>
 </resources>

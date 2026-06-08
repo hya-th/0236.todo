@@ -18,15 +18,38 @@
         tools:layout="@layout/fragment_todo" />
 
     <fragment
+        android:id="@+id/todoDetailFragment"
+        android:name="com.example.a0236todo.ui.todo.TodoDetailFragment"
+        android:label="@string/detail_title"
+        tools:layout="@layout/fragment_todo_detail">
+        <argument
+            android:name="todoId"
+            android:defaultValue="-1L"
+            app:argType="long" />
+    </fragment>
+
+    <fragment
         android:id="@+id/calendarFragment"
-        android:name="com.example.a0236todo.ui.placeholder.CalendarFragment"
+        android:name="com.example.a0236todo.ui.calendar.CalendarFragment"
         android:label="@string/nav_calendar"
-        tools:layout="@layout/fragment_placeholder" />
+        tools:layout="@layout/fragment_calendar" />
+
+    <fragment
+        android:id="@+id/calendarDetailFragment"
+        android:name="com.example.a0236todo.ui.calendar.CalendarDetailFragment"
+        android:label="@string/nav_calendar"
+        tools:layout="@layout/fragment_calendar_detail">
+        <argument
+            android:name="dateKey"
+            app:argType="string"
+            app:nullable="true"
+            android:defaultValue="@null" />
+    </fragment>
 
     <fragment
         android:id="@+id/weeklyFragment"
-        android:name="com.example.a0236todo.ui.placeholder.WeeklyFragment"
+        android:name="com.example.a0236todo.ui.weekly.WeeklyFragment"
         android:label="@string/nav_weekly"
-        tools:layout="@layout/fragment_placeholder" />
+        tools:layout="@layout/fragment_weekly" />
 
 </navigation>

@@ -13,8 +13,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="@string/todo_input_hint"
-        app:boxStrokeColor="@color/sage"
-        app:hintTextColor="@color/sage_dark">
+        app:boxStrokeColor="@color/pink"
+        app:hintTextColor="@color/pink_dark">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/etTitle"

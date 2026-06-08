@@ -22,6 +22,10 @@ class TodoViewModel(app: Application) : AndroidViewModel(app) {
     val todos: LiveData<List<TodoEntity>> =
         _date.switchMap { repository.observeByDate(it) }
 
+    fun setDate(key: String) {
+        if (_date.value != key) _date.value = key
+    }
+
     fun prevDay() {
         _date.value = DateUtils.shift(_date.value!!, -1)
     }

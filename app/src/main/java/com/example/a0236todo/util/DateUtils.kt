@@ -10,11 +10,16 @@ object DateUtils {
     private val keyFormat: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
     private val displayFormat: DateTimeFormatter =
         DateTimeFormatter.ofPattern("yyyy년 M월 d일 (E)", Locale.KOREAN)
+    private val shortFormat: DateTimeFormatter =
+        DateTimeFormatter.ofPattern("yyyy.MM.dd (E)", Locale.KOREAN)
 
     fun todayKey(): String = LocalDate.now().format(keyFormat)
 
     fun display(key: String): String =
         LocalDate.parse(key, keyFormat).format(displayFormat)
+
+    fun displayShort(key: String): String =
+        LocalDate.parse(key, keyFormat).format(shortFormat)
 
     fun shift(key: String, days: Long): String =
         LocalDate.parse(key, keyFormat).plusDays(days).format(keyFormat)

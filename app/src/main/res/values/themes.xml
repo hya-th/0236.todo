@@ -2,10 +2,10 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
 
     <style name="Theme.App" parent="Theme.Material3.Light.NoActionBar">
-        <item name="colorPrimary">@color/sage</item>
+        <item name="colorPrimary">@color/pink</item>
         <item name="colorOnPrimary">@color/white</item>
-        <item name="colorPrimaryContainer">@color/mint</item>
-        <item name="colorOnPrimaryContainer">@color/sage_dark</item>
+        <item name="colorPrimaryContainer">@color/pink_light</item>
+        <item name="colorOnPrimaryContainer">@color/pink_dark</item>
         <item name="colorSecondary">@color/peach</item>
         <item name="colorOnSecondary">@color/text_primary</item>
         <item name="colorSurface">@color/card</item>

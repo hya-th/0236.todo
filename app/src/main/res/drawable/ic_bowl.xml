@@ -1,0 +1,18 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <!-- food mound -->
+    <path
+        android:fillColor="#F3B27A"
+        android:pathData="M5.5,12 C7.5,8 16.5,8 18.5,12 Z" />
+    <!-- bowl -->
+    <path
+        android:fillColor="@color/pink"
+        android:pathData="M3.5,12 L20.5,12 C20.5,16.2 17,18.5 12,18.5 C7,18.5 3.5,16.2 3.5,12 Z" />
+    <!-- bowl rim highlight -->
+    <path
+        android:fillColor="@color/pink_light"
+        android:pathData="M3.5,12 L20.5,12 L20.5,13.4 L3.5,13.4 Z" />
+</vector>

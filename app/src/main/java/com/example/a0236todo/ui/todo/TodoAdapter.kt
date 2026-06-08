@@ -2,6 +2,7 @@ package com.example.a0236todo.ui.todo
 
 import android.graphics.Paint
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
@@ -11,7 +12,7 @@ import com.example.a0236todo.databinding.ItemTodoBinding
 
 class TodoAdapter(
     private val onToggle: (TodoEntity) -> Unit,
-    private val onDelete: (TodoEntity) -> Unit
+    private val onClick: (TodoEntity) -> Unit = {}
 ) : ListAdapter<TodoEntity, TodoAdapter.VH>(DIFF) {
 
     inner class VH(private val binding: ItemTodoBinding) :
@@ -20,6 +21,9 @@ class TodoAdapter(
         fun bind(item: TodoEntity) {
             binding.tvTitle.text = item.title
             binding.cbDone.isChecked = item.isDone
+
+            binding.tvTime.text = item.time
+            binding.tvTime.visibility = if (item.time.isBlank()) View.GONE else View.VISIBLE
 
             // 완료된 항목은 취소선 + 흐리게 표시
             binding.tvTitle.paintFlags = if (item.isDone) {
@@ -30,8 +34,7 @@ class TodoAdapter(
             binding.tvTitle.alpha = if (item.isDone) 0.5f else 1f
 
             binding.cbDone.setOnClickListener { onToggle(item) }
-            binding.tvTitle.setOnClickListener { onToggle(item) }
-            binding.btnDelete.setOnClickListener { onDelete(item) }
+            binding.root.setOnClickListener { onClick(item) }
         }
     }
 

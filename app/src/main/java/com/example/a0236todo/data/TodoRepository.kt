@@ -5,6 +5,10 @@ class TodoRepository(private val dao: TodoDao) {
 
     fun observeByDate(date: String) = dao.observeByDate(date)
 
+    fun observeById(id: Long) = dao.observeById(id)
+
+    suspend fun getById(id: Long) = dao.getById(id)
+
     suspend fun insert(todo: TodoEntity) = dao.insert(todo)
 
     suspend fun update(todo: TodoEntity) = dao.update(todo)

@@ -5,19 +5,22 @@
     <color name="white">#FFFFFF</color>
     <color name="card">#FFFFFF</color>
 
-    <!-- Pastel palette (cat / cottage theme) -->
-    <color name="sage">#A7C4A0</color>
-    <color name="sage_dark">#7FA374</color>
+    <!-- Pink / peach pastel palette (cat care theme) -->
+    <color name="pink">#E892A8</color>
+    <color name="pink_dark">#D97A93</color>
+    <color name="pink_light">#FAD9E1</color>
+    <color name="pink_bg">#FCEFF3</color>
+    <color name="peach">#FCE4C9</color>
+    <color name="cream">#FBF4E6</color>
+    <color name="yellow">#FBE08A</color>
     <color name="mint">#DCEBD8</color>
-    <color name="peach">#F7CBB6</color>
-    <color name="cream">#FBF3E4</color>
-    <color name="lavender">#D9CCEC</color>
-    <color name="nose">#F08C8C</color>
+    <color name="green">#9FCF97</color>
+    <color name="heart">#EC6A6A</color>
 
     <!-- Text -->
-    <color name="text_primary">#4A4A4A</color>
-    <color name="text_secondary">#9AA39A</color>
-    <color name="divider">#ECEFEA</color>
+    <color name="text_primary">#5E5654</color>
+    <color name="text_secondary">#B3A9A6</color>
+    <color name="divider">#EFE7E4</color>
 
     <color name="black">#000000</color>
 </resources>
