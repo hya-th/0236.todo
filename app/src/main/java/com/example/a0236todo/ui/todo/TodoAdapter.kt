@@ -53,7 +53,8 @@ class TodoAdapter(
             binding.btnExpand.setOnClickListener {
                 if (item.id in expandedIds) expandedIds.remove(item.id)
                 else expandedIds.add(item.id)
-                notifyItemChanged(bindingAdapterPosition)
+                val pos = adapterPosition
+                if (pos != RecyclerView.NO_POSITION) notifyItemChanged(pos)
             }
         }
 
