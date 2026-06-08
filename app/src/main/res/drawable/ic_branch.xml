@@ -1,14 +1,15 @@
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="22dp"
     android:height="28dp"
-    android:viewportWidth="22"
+    android:viewportWidth="26"
     android:viewportHeight="28">
-    <!-- vertical -->
-    <path
-        android:fillColor="@color/pink"
-        android:pathData="M7,0 L9.5,0 L9.5,18 L7,18 Z" />
-    <!-- corner to right -->
-    <path
-        android:fillColor="@color/pink"
-        android:pathData="M7,15.5 L22,15.5 L22,18 L7,18 Z" />
+    <!-- vertical pixel blocks -->
+    <path android:fillColor="@color/pink" android:pathData="M6,1 h4 v4 h-4 Z" />
+    <path android:fillColor="@color/pink" android:pathData="M6,6 h4 v4 h-4 Z" />
+    <path android:fillColor="@color/pink" android:pathData="M6,11 h4 v4 h-4 Z" />
+    <path android:fillColor="@color/pink" android:pathData="M6,16 h4 v4 h-4 Z" />
+    <!-- horizontal pixel blocks -->
+    <path android:fillColor="@color/pink" android:pathData="M11,16 h4 v4 h-4 Z" />
+    <path android:fillColor="@color/pink" android:pathData="M16,16 h4 v4 h-4 Z" />
+    <path android:fillColor="@color/pink" android:pathData="M21,16 h4 v4 h-4 Z" />
 </vector>
