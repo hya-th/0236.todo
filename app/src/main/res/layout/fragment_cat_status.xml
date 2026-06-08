@@ -1,0 +1,214 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/bg"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingHorizontal="20dp"
+        android:paddingTop="20dp"
+        android:paddingBottom="24dp">
+
+        <!-- Header -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <ImageButton
+                android:id="@+id/btnBack"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_marginStart="-8dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/cd_back"
+                android:src="@drawable/ic_arrow_back" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="4dp"
+                android:layout_weight="1"
+                android:text="@string/cat_status_title"
+                android:textColor="@color/text_primary"
+                android:textSize="19sp"
+                android:textStyle="bold" />
+
+            <ImageView
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:contentDescription="@string/cat_status_title"
+                android:src="@drawable/ic_paw" />
+
+        </LinearLayout>
+
+        <!-- Weekly horizontal strip -->
+        <HorizontalScrollView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:scrollbars="none">
+
+            <LinearLayout
+                android:id="@+id/dayStrip"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal" />
+
+        </HorizontalScrollView>
+
+        <!-- Status ring card -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:background="@drawable/bg_card"
+            android:orientation="vertical"
+            android:paddingVertical="24dp">
+
+            <FrameLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center">
+
+                <com.google.android.material.progressindicator.CircularProgressIndicator
+                    android:id="@+id/ring"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    app:indicatorColor="@color/pink"
+                    app:indicatorSize="220dp"
+                    app:trackColor="@color/pink_bg"
+                    app:trackCornerRadius="100dp"
+                    app:trackThickness="14dp" />
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:gravity="center"
+                    android:orientation="vertical">
+
+                    <ImageView
+                        android:layout_width="86dp"
+                        android:layout_height="86dp"
+                        android:adjustViewBounds="true"
+                        android:contentDescription="@string/cat_status_title"
+                        android:scaleType="fitCenter"
+                        android:src="@drawable/cat_blue" />
+
+                    <TextView
+                        android:id="@+id/tvPercent"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp"
+                        android:textColor="@color/pink_dark"
+                        android:textSize="30sp"
+                        android:textStyle="bold"
+                        tools:text="60%" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/cat_status_title"
+                        android:textColor="@color/text_secondary"
+                        android:textSize="13sp" />
+
+                </LinearLayout>
+
+            </FrameLayout>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginTop="14dp"
+                android:text="@string/cat_status_caption"
+                android:textColor="@color/text_secondary"
+                android:textSize="13sp" />
+
+        </LinearLayout>
+
+        <!-- Stat cards 2x2 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:orientation="horizontal">
+
+            <LinearLayout style="@style/StatCard" android:layout_marginEnd="6dp">
+
+                <LinearLayout style="@style/StatHeader">
+                    <ImageView style="@style/StatIcon" android:src="@drawable/ic_check_circle" />
+                    <TextView style="@style/StatLabel" android:text="@string/stat_done" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/tvStatDone"
+                    style="@style/StatValue"
+                    tools:text="3 / 5" />
+
+            </LinearLayout>
+
+            <LinearLayout style="@style/StatCard" android:layout_marginStart="6dp">
+
+                <LinearLayout style="@style/StatHeader">
+                    <ImageView style="@style/StatIcon" android:src="@drawable/ic_bowl" />
+                    <TextView style="@style/StatLabel" android:text="@string/stat_percent" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/tvStatPercent"
+                    style="@style/StatValue"
+                    tools:text="60%" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:orientation="horizontal">
+
+            <LinearLayout style="@style/StatCard" android:layout_marginEnd="6dp">
+
+                <LinearLayout style="@style/StatHeader">
+                    <ImageView style="@style/StatIcon" android:src="@drawable/ic_paw" />
+                    <TextView style="@style/StatLabel" android:text="@string/stat_remain" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/tvStatRemain"
+                    style="@style/StatValue"
+                    tools:text="2개" />
+
+            </LinearLayout>
+
+            <LinearLayout style="@style/StatCard" android:layout_marginStart="6dp">
+
+                <LinearLayout style="@style/StatHeader">
+                    <ImageView style="@style/StatIcon" android:src="@drawable/ic_heart" />
+                    <TextView style="@style/StatLabel" android:text="@string/stat_streak" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/tvStatStreak"
+                    style="@style/StatValue"
+                    android:text="9일" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</ScrollView>

@@ -27,6 +27,7 @@ class HomeFragment : Fragment() {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        binding.cardTodayCat.setOnClickListener { findNavController().navigate(R.id.catStatusFragment) }
         binding.cardAllTodo.setOnClickListener { findNavController().navigate(R.id.todoFragment) }
         binding.cardMonthly.setOnClickListener { findNavController().navigate(R.id.calendarFragment) }
         binding.cardWeekly.setOnClickListener { findNavController().navigate(R.id.weeklyFragment) }

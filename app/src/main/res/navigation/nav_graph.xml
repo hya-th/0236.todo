@@ -12,6 +12,12 @@
         tools:layout="@layout/fragment_home" />
 
     <fragment
+        android:id="@+id/catStatusFragment"
+        android:name="com.example.a0236todo.ui.cat.CatStatusFragment"
+        android:label="@string/cat_status_title"
+        tools:layout="@layout/fragment_cat_status" />
+
+    <fragment
         android:id="@+id/todoFragment"
         android:name="com.example.a0236todo.ui.todo.TodoFragment"
         android:label="@string/nav_todo"

@@ -38,6 +38,14 @@
     <string name="detail_memo">메모</string>
     <string name="detail_memo_hint">메모를 입력하세요</string>
 
+    <!-- Cat status -->
+    <string name="cat_status_title">오늘의 냥이</string>
+    <string name="cat_status_caption">할 일을 완료하면 냥이가 행복해져요 🐾</string>
+    <string name="stat_done">완료한 할 일</string>
+    <string name="stat_remain">남은 할 일</string>
+    <string name="stat_percent">진행률</string>
+    <string name="stat_streak">연속 출석</string>
+
     <!-- Calendar -->
     <string name="calendar_bowl_title">이번 달 냥이 밥그릇</string>
     <string name="calendar_streak_title">연속 급여 (출석체크)</string>
