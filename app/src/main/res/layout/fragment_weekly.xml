@@ -37,7 +37,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="@string/weekly_title"
-                android:fontFamily="monospace"
+                android:fontFamily="@font/dunggeunmo"
                 android:letterSpacing="0.02"
                 android:textColor="@color/text_primary"
                 android:textSize="22sp"
