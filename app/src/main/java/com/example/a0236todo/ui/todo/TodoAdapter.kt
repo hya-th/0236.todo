@@ -20,6 +20,7 @@ class TodoAdapter(
 
         fun bind(item: TodoEntity) {
             binding.tvTitle.text = item.title
+            binding.cbDone.buttonTintList = null
             binding.cbDone.isChecked = item.isDone
 
             binding.tvTime.text = item.time
