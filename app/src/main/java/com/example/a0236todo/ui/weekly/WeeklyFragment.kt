@@ -34,6 +34,8 @@ class WeeklyFragment : Fragment() {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        binding.btnBack.setOnClickListener { findNavController().navigate(R.id.homeFragment) }
+
         val monday = LocalDate.now().with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
         val today = LocalDate.now()
 

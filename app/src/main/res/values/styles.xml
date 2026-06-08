@@ -5,6 +5,19 @@
         <item name="android:color">@color/pink_light</item>
     </style>
 
+    <style name="BottomNavTextActive">
+        <item name="android:textSize">12sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textColor">@color/pink_dark</item>
+        <item name="fontFamily">monospace</item>
+    </style>
+
+    <style name="BottomNavTextInactive">
+        <item name="android:textSize">12sp</item>
+        <item name="android:textColor">@color/text_secondary</item>
+        <item name="fontFamily">monospace</item>
+    </style>
+
     <style name="CardTitle">
         <item name="android:textColor">@color/text_primary</item>
         <item name="android:textSize">17sp</item>

@@ -35,6 +35,7 @@ class CalendarFragment : Fragment() {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        binding.btnBack.setOnClickListener { findNavController().navigate(R.id.homeFragment) }
         binding.btnPrevMonth.setOnClickListener { month = month.minusMonths(1); render() }
         binding.btnNextMonth.setOnClickListener { month = month.plusMonths(1); render() }
         render()
