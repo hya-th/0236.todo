@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/homeFragment">
+
+    <fragment
+        android:id="@+id/homeFragment"
+        android:name="com.example.a0236todo.ui.home.HomeFragment"
+        android:label="@string/nav_home"
+        tools:layout="@layout/fragment_home" />
+
+    <fragment
+        android:id="@+id/todoFragment"
+        android:name="com.example.a0236todo.ui.todo.TodoFragment"
+        android:label="@string/nav_todo"
+        tools:layout="@layout/fragment_todo" />
+
+    <fragment
+        android:id="@+id/calendarFragment"
+        android:name="com.example.a0236todo.ui.placeholder.CalendarFragment"
+        android:label="@string/nav_calendar"
+        tools:layout="@layout/fragment_placeholder" />
+
+    <fragment
+        android:id="@+id/weeklyFragment"
+        android:name="com.example.a0236todo.ui.placeholder.WeeklyFragment"
+        android:label="@string/nav_weekly"
+        tools:layout="@layout/fragment_placeholder" />
+
+</navigation>

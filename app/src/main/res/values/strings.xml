@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">0236 투두</string>
+
+    <!-- Bottom navigation -->
+    <string name="nav_home">홈</string>
+    <string name="nav_todo">투두</string>
+    <string name="nav_calendar">캘린더</string>
+    <string name="nav_weekly">위클리</string>
+
+    <!-- Home -->
+    <string name="home_greeting">오늘도 반가워요 🐱</string>
+    <string name="home_today_todo">오늘의 할 일</string>
+    <string name="home_progress_empty">아직 오늘 할 일이 없어요</string>
+
+    <!-- Todo -->
+    <string name="todo_title">데일리 플래너</string>
+    <string name="todo_add">할 일 추가</string>
+    <string name="todo_empty">할 일이 없어요\n오늘 할 일을 추가해 보세요!</string>
+    <string name="todo_input_hint">할 일을 입력하세요</string>
+    <string name="action_add">추가</string>
+    <string name="action_cancel">취소</string>
+    <string name="action_delete">삭제</string>
+
+    <!-- Placeholder -->
+    <string name="coming_soon">곧 만나요!</string>
+    <string name="prev_day">이전 날</string>
+    <string name="next_day">다음 날</string>
+</resources>

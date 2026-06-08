@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Base -->
+    <color name="bg">#F8FAF8</color>
+    <color name="white">#FFFFFF</color>
+    <color name="card">#FFFFFF</color>
+
+    <!-- Pastel palette (cat / cottage theme) -->
+    <color name="sage">#A7C4A0</color>
+    <color name="sage_dark">#7FA374</color>
+    <color name="mint">#DCEBD8</color>
+    <color name="peach">#F7CBB6</color>
+    <color name="cream">#FBF3E4</color>
+    <color name="lavender">#D9CCEC</color>
+    <color name="nose">#F08C8C</color>
+
+    <!-- Text -->
+    <color name="text_primary">#4A4A4A</color>
+    <color name="text_secondary">#9AA39A</color>
+    <color name="divider">#ECEFEA</color>
+
+    <color name="black">#000000</color>
+</resources>

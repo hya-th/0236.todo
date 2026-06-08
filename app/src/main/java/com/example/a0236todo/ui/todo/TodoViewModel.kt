@@ -1,0 +1,48 @@
+package com.example.a0236todo.ui.todo
+
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.switchMap
+import androidx.lifecycle.viewModelScope
+import com.example.a0236todo.TodoApplication
+import com.example.a0236todo.data.TodoEntity
+import com.example.a0236todo.util.DateUtils
+import kotlinx.coroutines.launch
+
+class TodoViewModel(app: Application) : AndroidViewModel(app) {
+
+    private val repository = (app as TodoApplication).repository
+
+    private val _date = MutableLiveData(DateUtils.todayKey())
+    val date: LiveData<String> = _date
+
+    /** 선택된 날짜가 바뀌면 자동으로 해당 날짜의 목록을 다시 관찰한다. */
+    val todos: LiveData<List<TodoEntity>> =
+        _date.switchMap { repository.observeByDate(it) }
+
+    fun prevDay() {
+        _date.value = DateUtils.shift(_date.value!!, -1)
+    }
+
+    fun nextDay() {
+        _date.value = DateUtils.shift(_date.value!!, 1)
+    }
+
+    fun add(title: String) {
+        val text = title.trim()
+        if (text.isEmpty()) return
+        viewModelScope.launch {
+            repository.insert(TodoEntity(title = text, date = _date.value!!))
+        }
+    }
+
+    fun toggle(todo: TodoEntity) = viewModelScope.launch {
+        repository.update(todo.copy(isDone = !todo.isDone))
+    }
+
+    fun delete(todo: TodoEntity) = viewModelScope.launch {
+        repository.delete(todo)
+    }
+}
