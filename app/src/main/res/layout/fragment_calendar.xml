@@ -40,7 +40,7 @@
                 android:letterSpacing="0.02"
                 android:text="@string/nav_calendar"
                 android:textColor="@color/text_primary"
-                android:textSize="19sp"
+                android:textSize="17sp"
                 android:textStyle="bold" />
 
             <ImageView
@@ -76,7 +76,7 @@
                 android:fontFamily="@font/dunggeunmo"
                 android:letterSpacing="0.02"
                 android:textColor="@color/text_primary"
-                android:textSize="19sp"
+                android:textSize="17sp"
                 android:textStyle="bold"
                 tools:text="2024년 5월" />
 
@@ -151,7 +151,7 @@
                     android:layout_weight="1"
                     android:text="@string/calendar_bowl_title"
                     android:textColor="@color/text_primary"
-                    android:textSize="15sp"
+                    android:textSize="13sp"
                     android:textStyle="bold" />
 
                 <TextView
@@ -159,7 +159,7 @@
                     android:layout_height="wrap_content"
                     android:text="76%"
                     android:textColor="@color/pink_dark"
-                    android:textSize="16sp"
+                    android:textSize="14sp"
                     android:textStyle="bold" />
 
             </LinearLayout>
@@ -192,7 +192,7 @@
                 android:layout_weight="1"
                 android:text="@string/calendar_streak_title"
                 android:textColor="@color/text_primary"
-                android:textSize="15sp"
+                android:textSize="13sp"
                 android:textStyle="bold" />
 
             <TextView
@@ -200,7 +200,7 @@
                 android:layout_height="wrap_content"
                 android:text="9일째"
                 android:textColor="@color/heart"
-                android:textSize="22sp"
+                android:textSize="18sp"
                 android:textStyle="bold" />
 
         </LinearLayout>

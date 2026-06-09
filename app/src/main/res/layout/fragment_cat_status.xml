@@ -40,7 +40,7 @@
                 android:fontFamily="@font/dunggeunmo"
                 android:letterSpacing="0.02"
                 android:textColor="@color/text_primary"
-                android:textSize="19sp"
+                android:textSize="17sp"
                 android:textStyle="bold" />
 
             <ImageView
@@ -112,7 +112,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="6dp"
                         android:textColor="@color/pink_dark"
-                        android:textSize="30sp"
+                        android:textSize="24sp"
                         android:textStyle="bold"
                         tools:text="60%" />
 
@@ -121,7 +121,7 @@
                         android:layout_height="wrap_content"
                         android:text="@string/cat_status_title"
                         android:textColor="@color/text_secondary"
-                        android:textSize="13sp" />
+                        android:textSize="12sp" />
 
                 </LinearLayout>
 
@@ -134,7 +134,7 @@
                 android:layout_marginTop="14dp"
                 android:text="@string/cat_status_caption"
                 android:textColor="@color/text_secondary"
-                android:textSize="13sp" />
+                android:textSize="12sp" />
 
         </LinearLayout>
 

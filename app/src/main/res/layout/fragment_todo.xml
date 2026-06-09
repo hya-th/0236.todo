@@ -28,7 +28,7 @@
         android:fontFamily="@font/dunggeunmo"
         android:letterSpacing="0.02"
         android:textColor="@color/text_primary"
-        android:textSize="19sp"
+        android:textSize="17sp"
         android:textStyle="bold"
         app:layout_constraintBottom_toBottomOf="@id/btnBack"
         app:layout_constraintStart_toEndOf="@id/btnBack"
@@ -74,7 +74,7 @@
             android:layout_weight="1"
             android:gravity="center"
             android:textColor="@color/text_primary"
-            android:textSize="15sp"
+            android:textSize="13sp"
             android:textStyle="bold"
             tools:text="2024.05.20 (월)" />
 
@@ -108,7 +108,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textColor="@color/pink_dark"
-            android:textSize="15sp"
+            android:textSize="13sp"
             android:textStyle="bold"
             tools:text="3 / 5 완료" />
 
@@ -119,7 +119,7 @@
             android:gravity="end"
             android:text="@string/todo_feed_hint"
             android:textColor="@color/text_secondary"
-            android:textSize="12sp" />
+            android:textSize="11sp" />
 
         <com.example.a0236todo.ui.widget.BowlFillView
             android:id="@+id/bowlView"
@@ -172,7 +172,7 @@
             android:gravity="center"
             android:text="@string/todo_empty"
             android:textColor="@color/text_secondary"
-            android:textSize="15sp" />
+            android:textSize="13sp" />
 
     </LinearLayout>
 
@@ -186,7 +186,7 @@
         android:gravity="center"
         android:text="@string/todo_add"
         android:textColor="@color/white"
-        android:textSize="16sp"
+        android:textSize="14sp"
         android:textStyle="bold"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"

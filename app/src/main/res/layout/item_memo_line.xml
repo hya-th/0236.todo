@@ -24,7 +24,7 @@
         android:paddingHorizontal="14dp"
         android:paddingVertical="10dp"
         android:textColor="@color/text_primary"
-        android:textSize="14sp"
+        android:textSize="12sp"
         tools:text="memo memo" />
 
 </LinearLayout>

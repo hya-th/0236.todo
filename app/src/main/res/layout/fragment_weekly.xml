@@ -40,7 +40,7 @@
                 android:fontFamily="@font/dunggeunmo"
                 android:letterSpacing="0.02"
                 android:textColor="@color/text_primary"
-                android:textSize="22sp"
+                android:textSize="18sp"
                 android:textStyle="bold" />
 
             <ImageView
@@ -72,7 +72,7 @@
                     android:layout_height="wrap_content"
                     android:text="@string/weekly_feed_title"
                     android:textColor="@color/text_primary"
-                    android:textSize="14sp"
+                    android:textSize="12sp"
                     android:textStyle="bold" />
 
                 <TextView
@@ -81,7 +81,7 @@
                     android:layout_marginTop="2dp"
                     android:text="78%"
                     android:textColor="@color/pink_dark"
-                    android:textSize="28sp"
+                    android:textSize="22sp"
                     android:textStyle="bold" />
 
                 <TextView
@@ -89,7 +89,7 @@
                     android:layout_height="wrap_content"
                     android:text="5 / 7 일 완료했어요!"
                     android:textColor="@color/text_secondary"
-                    android:textSize="12sp" />
+                    android:textSize="11sp" />
 
                 <com.google.android.material.progressindicator.LinearProgressIndicator
                     android:layout_width="match_parent"
@@ -136,7 +136,7 @@
                 android:layout_height="wrap_content"
                 android:text="@string/weekly_concept_title"
                 android:textColor="@color/text_primary"
-                android:textSize="15sp"
+                android:textSize="13sp"
                 android:textStyle="bold" />
 
             <TextView
@@ -146,7 +146,7 @@
                 android:lineSpacingExtra="3dp"
                 android:text="@string/weekly_concept_body"
                 android:textColor="@color/text_secondary"
-                android:textSize="13sp" />
+                android:textSize="12sp" />
 
         </LinearLayout>
 

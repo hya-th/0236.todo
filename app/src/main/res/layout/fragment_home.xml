@@ -33,7 +33,7 @@
                     android:fontFamily="@font/dunggeunmo"
                     android:letterSpacing="0.02"
                     android:textColor="@color/text_primary"
-                    android:textSize="22sp"
+                    android:textSize="18sp"
                     android:textStyle="bold" />
 
                 <TextView
@@ -42,7 +42,7 @@
                     android:layout_marginTop="2dp"
                     android:text="@string/home_greeting_sub"
                     android:textColor="@color/text_secondary"
-                    android:textSize="13sp" />
+                    android:textSize="12sp" />
 
             </LinearLayout>
 
@@ -107,7 +107,7 @@
                     android:layout_marginTop="8dp"
                     android:fontFamily="@font/dunggeunmo"
                     android:textColor="@color/text_primary"
-                    android:textSize="15sp"
+                    android:textSize="13sp"
                     android:textStyle="bold"
                     tools:text="오늘 할 일 3 / 5 완료" />
 
@@ -128,7 +128,7 @@
                     android:layout_marginTop="8dp"
                     android:text="@string/home_progress_caption"
                     android:textColor="@color/text_secondary"
-                    android:textSize="12sp" />
+                    android:textSize="11sp" />
 
             </LinearLayout>
 

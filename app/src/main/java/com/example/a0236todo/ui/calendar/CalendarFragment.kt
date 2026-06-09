@@ -65,7 +65,7 @@ class CalendarFragment : Fragment() {
             layoutParams = cellParams()
             text = day.toString()
             gravity = Gravity.CENTER
-            setTextSize(TypedValue.COMPLEX_UNIT_SP, 14f)
+            setTextSize(TypedValue.COMPLEX_UNIT_SP, 12f)
             if (isToday) {
                 setBackgroundResource(R.drawable.bg_chip_selected)
                 setTextColor(resources.getColor(R.color.white, null))
