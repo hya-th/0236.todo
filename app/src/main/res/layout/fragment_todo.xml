@@ -121,12 +121,11 @@
             android:textColor="@color/text_secondary"
             android:textSize="12sp" />
 
-        <ImageView
-            android:layout_width="26dp"
-            android:layout_height="26dp"
-            android:layout_marginStart="8dp"
-            android:contentDescription="@string/todo_feed_hint"
-            android:src="@drawable/ic_bowl" />
+        <com.example.a0236todo.ui.widget.BowlFillView
+            android:id="@+id/bowlView"
+            android:layout_width="46dp"
+            android:layout_height="46dp"
+            android:layout_marginStart="8dp" />
 
     </LinearLayout>
 

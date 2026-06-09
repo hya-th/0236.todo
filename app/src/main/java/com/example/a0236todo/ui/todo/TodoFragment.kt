@@ -61,6 +61,7 @@ class TodoFragment : Fragment() {
 
             val done = list.count { it.isDone }
             binding.tvProgress.text = "$done / ${list.size} 완료"
+            binding.bowlView.setProgress(done, list.size)
         }
     }
 
