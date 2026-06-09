@@ -50,6 +50,12 @@
     <string name="calendar_bowl_title">이번 달 냥이 밥그릇</string>
     <string name="calendar_streak_title">연속 급여 (출석체크)</string>
 
+    <!-- Diary -->
+    <string name="diary_write">일기 쓰기</string>
+    <string name="diary_edit">일기 보기 · 수정</string>
+    <string name="diary_hint">오늘 하루는 어땠나요? 냥이에게 들려주세요 🐾</string>
+    <string name="diary_saved">일기를 저장했어요</string>
+
     <!-- Calendar detail -->
     <string name="cd_reward_title">냥이 하루 보상</string>
     <string name="cd_reward_sub">오늘 할 일을 꾸준히 채웠어요!</string>

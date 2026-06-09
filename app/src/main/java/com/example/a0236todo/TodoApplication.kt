@@ -8,6 +8,7 @@ import com.example.a0236todo.data.TodoRepository
 class TodoApplication : Application() {
 
     val repository: TodoRepository by lazy {
-        TodoRepository(AppDatabase.getInstance(this).todoDao())
+        val db = AppDatabase.getInstance(this)
+        TodoRepository(db.todoDao(), db.diaryDao())
     }
 }

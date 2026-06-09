@@ -23,4 +23,8 @@ object DateUtils {
 
     fun shift(key: String, days: Long): String =
         LocalDate.parse(key, keyFormat).plusDays(days).format(keyFormat)
+
+    /** 해당 날짜가 오늘보다 이전인지 여부 */
+    fun isPast(key: String): Boolean =
+        LocalDate.parse(key, keyFormat).isBefore(LocalDate.now())
 }

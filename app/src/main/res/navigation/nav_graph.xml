@@ -21,7 +21,13 @@
         android:id="@+id/todoFragment"
         android:name="com.example.a0236todo.ui.todo.TodoFragment"
         android:label="@string/nav_todo"
-        tools:layout="@layout/fragment_todo" />
+        tools:layout="@layout/fragment_todo">
+        <argument
+            android:name="dateKey"
+            app:argType="string"
+            app:nullable="true"
+            android:defaultValue="@null" />
+    </fragment>
 
     <fragment
         android:id="@+id/todoDetailFragment"

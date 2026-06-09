@@ -74,7 +74,7 @@ class CalendarFragment : Fragment() {
             }
             setOnClickListener {
                 findNavController().navigate(
-                    R.id.calendarDetailFragment,
+                    R.id.todoFragment,
                     bundleOf("dateKey" to date.format(keyFormat))
                 )
             }

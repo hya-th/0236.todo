@@ -49,4 +49,13 @@ class TodoViewModel(app: Application) : AndroidViewModel(app) {
     fun delete(todo: TodoEntity) = viewModelScope.launch {
         repository.delete(todo)
     }
+
+    /** 해당 날짜의 일기 내용을 콜백으로 전달 (없으면 빈 문자열). */
+    fun loadDiary(date: String, onResult: (String) -> Unit) = viewModelScope.launch {
+        onResult(repository.getDiary(date)?.content ?: "")
+    }
+
+    fun saveDiary(date: String, content: String) = viewModelScope.launch {
+        repository.saveDiary(date, content)
+    }
 }
