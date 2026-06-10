@@ -6,32 +6,32 @@
     </style>
 
     <style name="BottomNavTextActive">
-        <item name="android:textSize">11spsp</item>
+        <item name="android:textSize">11sp</item>
         <item name="android:textStyle">bold</item>
         <item name="android:textColor">@color/pink_dark</item>
         <item name="fontFamily">@font/dunggeunmo</item>
     </style>
 
     <style name="BottomNavTextInactive">
-        <item name="android:textSize">11spsp</item>
+        <item name="android:textSize">11sp</item>
         <item name="android:textColor">@color/text_secondary</item>
         <item name="fontFamily">@font/dunggeunmo</item>
     </style>
 
     <style name="CardTitle">
         <item name="android:textColor">@color/text_primary</item>
-        <item name="android:textSize">15spsp</item>
+        <item name="android:textSize">15sp</item>
         <item name="android:textStyle">bold</item>
     </style>
 
     <style name="CardCaption">
         <item name="android:textColor">@color/text_secondary</item>
-        <item name="android:textSize">12spsp</item>
+        <item name="android:textSize">12sp</item>
     </style>
 
     <style name="ScreenTitle">
         <item name="android:textColor">@color/text_primary</item>
-        <item name="android:textSize">17spsp</item>
+        <item name="android:textSize">17sp</item>
         <item name="android:textStyle">bold</item>
         <item name="android:fontFamily">@font/dunggeunmo</item>
         <item name="android:letterSpacing">0.02</item>
@@ -55,7 +55,7 @@
         <item name="android:fontFamily">@font/dunggeunmo</item>
         <item name="android:textStyle">bold</item>
         <item name="android:textColor">@color/text_primary</item>
-        <item name="android:textSize">12spsp</item>
+        <item name="android:textSize">12sp</item>
         <item name="android:letterSpacing">0.04</item>
         <item name="android:maxLines">1</item>
         <item name="android:ellipsize">end</item>
@@ -93,7 +93,7 @@
         <item name="android:layout_weight">1</item>
         <item name="android:layout_marginStart">14dp</item>
         <item name="android:textColor">@color/text_primary</item>
-        <item name="android:textSize">14spsp</item>
+        <item name="android:textSize">14sp</item>
         <item name="android:textStyle">bold</item>
     </style>
 
@@ -130,7 +130,7 @@
         <item name="android:layout_height">wrap_content</item>
         <item name="android:layout_marginStart">6dp</item>
         <item name="android:textColor">@color/text_secondary</item>
-        <item name="android:textSize">12spsp</item>
+        <item name="android:textSize">12sp</item>
     </style>
 
     <style name="StatValue">
@@ -138,7 +138,7 @@
         <item name="android:layout_height">wrap_content</item>
         <item name="android:layout_marginTop">10dp</item>
         <item name="android:textColor">@color/text_primary</item>
-        <item name="android:textSize">18spsp</item>
+        <item name="android:textSize">18sp</item>
         <item name="android:textStyle">bold</item>
     </style>
 
@@ -149,7 +149,7 @@
         <item name="android:gravity">center</item>
         <item name="android:paddingVertical">6dp</item>
         <item name="android:textColor">@color/text_secondary</item>
-        <item name="android:textSize">12spsp</item>
+        <item name="android:textSize">12sp</item>
         <item name="android:textStyle">bold</item>
     </style>
 
@@ -161,7 +161,7 @@
         <item name="android:gravity">center</item>
         <item name="android:paddingVertical">10dp</item>
         <item name="android:textColor">@color/text_secondary</item>
-        <item name="android:textSize">12spsp</item>
+        <item name="android:textSize">12sp</item>
         <item name="android:clickable">true</item>
         <item name="android:focusable">true</item>
     </style>
