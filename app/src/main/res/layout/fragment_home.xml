@@ -200,6 +200,7 @@
             android:layout_width="wrap_content"
             android:layout_height="130dp"
             android:layout_gravity="center_horizontal"
+            android:layout_marginStart="60dp"
             android:layout_marginTop="24dp"
             android:adjustViewBounds="true"
             android:contentDescription="@string/home_today_cat"
