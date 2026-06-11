@@ -6,6 +6,8 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.HorizontalScrollView
+import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
@@ -95,6 +97,15 @@ class TodoFragment : Fragment() {
         var startTime = LocalTime.now().withMinute(0)
         var endDate = startDate
         var endTime = startTime.plusHours(1)
+        var selectedColor = TodoColors.DEFAULT
+
+        b.vColorDot.background = TodoColors.circle(selectedColor)
+        b.vColorDot.setOnClickListener {
+            showColorPicker(selectedColor) { picked ->
+                selectedColor = picked
+                b.vColorDot.background = TodoColors.circle(selectedColor)
+            }
+        }
 
         fun refresh() {
             b.tvStartDate.text = startDate.format(uiDateFmt)
@@ -151,13 +162,44 @@ class TodoFragment : Fragment() {
                 allDay = allDay,
                 endDate = endDate.format(dbDateFmt),
                 endTime = if (allDay) "" else endTime.format(dbTimeFmt),
-                repeat = b.swRepeat.isChecked
+                repeat = b.swRepeat.isChecked,
+                color = selectedColor
             )
             viewModel.setDate(startKey) // 추가한 날짜로 이동해 바로 보이도록
             dialog.dismiss()
         }
         dialog.show()
     }
+
+    private fun showColorPicker(current: String, onPick: (String) -> Unit) {
+        val ctx = requireContext()
+        val pad = dp(20)
+        val row = LinearLayout(ctx).apply {
+            orientation = LinearLayout.HORIZONTAL
+            setPadding(pad, pad, pad, pad)
+        }
+        val scroll = HorizontalScrollView(ctx).apply {
+            isHorizontalScrollBarEnabled = false
+            addView(row)
+        }
+        val dialog = MaterialAlertDialogBuilder(ctx)
+            .setTitle("테마 색 선택")
+            .setView(scroll)
+            .create()
+
+        val size = dp(38)
+        TodoColors.PRESETS.forEach { hex ->
+            val swatch = View(ctx).apply {
+                layoutParams = LinearLayout.LayoutParams(size, size).apply { marginEnd = dp(8) }
+                background = TodoColors.circle(hex, dp(if (hex == current) 4 else 2))
+                setOnClickListener { onPick(hex); dialog.dismiss() }
+            }
+            row.addView(swatch)
+        }
+        dialog.show()
+    }
+
+    private fun dp(value: Int): Int = (value * resources.displayMetrics.density).toInt()
 
     private fun showClearAllDialog() {
         MaterialAlertDialogBuilder(requireContext())

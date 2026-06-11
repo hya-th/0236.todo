@@ -44,14 +44,17 @@
             android:inputType="text"
             android:maxLines="1"
             android:textColor="@color/text_primary"
-            android:textColorHint="@color/text_secondary"
+            android:textColorHint="@color/text_primary"
             android:textSize="16sp" />
 
         <View
-            android:layout_width="14dp"
-            android:layout_height="14dp"
+            android:id="@+id/vColorDot"
+            android:layout_width="22dp"
+            android:layout_height="22dp"
             android:layout_marginStart="8dp"
-            android:background="@drawable/bg_dot" />
+            android:background="@drawable/bg_dot"
+            android:clickable="true"
+            android:focusable="true" />
 
     </LinearLayout>
 

@@ -41,7 +41,8 @@ class TodoViewModel(app: Application) : AndroidViewModel(app) {
         allDay: Boolean,
         endDate: String,
         endTime: String,
-        repeat: Boolean
+        repeat: Boolean,
+        color: String
     ) {
         val text = title.trim()
         if (text.isEmpty()) return
@@ -54,7 +55,8 @@ class TodoViewModel(app: Application) : AndroidViewModel(app) {
                     allDay = allDay,
                     endDate = endDate,
                     endTime = endTime,
-                    repeat = repeat
+                    repeat = repeat,
+                    color = color
                 )
             )
         }

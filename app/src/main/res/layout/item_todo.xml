@@ -43,6 +43,13 @@
             android:textSize="14sp"
             tools:text="아침 스트레칭 하기" />
 
+        <View
+            android:id="@+id/vColorDot"
+            android:layout_width="10dp"
+            android:layout_height="10dp"
+            android:layout_marginStart="6dp"
+            android:background="@drawable/bg_dot" />
+
         <TextView
             android:id="@+id/tvTime"
             android:layout_width="wrap_content"

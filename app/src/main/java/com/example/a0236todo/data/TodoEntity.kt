@@ -26,6 +26,7 @@ data class TodoEntity(
     val endDate: String = "",
     val endTime: String = "",
     val repeat: Boolean = false,
+    val color: String = "#D7C4F0",
     val priority: Int = 1,
     val reminder: Boolean = false,
     val memo: String = "",
