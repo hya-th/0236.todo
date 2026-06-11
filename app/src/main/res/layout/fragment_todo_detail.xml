@@ -233,7 +233,34 @@
 
             </LinearLayout>
 
-            <!-- Memo card -->
+            <!-- Added memo list -->
+            <LinearLayout
+                android:id="@+id/memoListSection"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp"
+                android:orientation="vertical"
+                android:visibility="gone"
+                tools:visibility="visible">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="8dp"
+                    android:text="MEMO"
+                    android:textColor="@color/text_primary"
+                    android:textSize="13sp"
+                    android:textStyle="bold" />
+
+                <LinearLayout
+                    android:id="@+id/memoListContainer"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical" />
+
+            </LinearLayout>
+
+            <!-- Memo input card -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -242,28 +269,45 @@
                 android:orientation="vertical"
                 android:padding="18dp">
 
-                <TextView
-                    android:layout_width="wrap_content"
+                <LinearLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="@string/detail_memo"
-                    android:textColor="@color/text_primary"
-                    android:textSize="13sp"
-                    android:textStyle="bold" />
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/detail_memo"
+                        android:textColor="@color/text_primary"
+                        android:textSize="13sp"
+                        android:textStyle="bold" />
+
+                    <ImageButton
+                        android:id="@+id/btnAddMemo"
+                        android:layout_width="30dp"
+                        android:layout_height="30dp"
+                        android:alpha="0.35"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:contentDescription="@string/action_add"
+                        android:enabled="false"
+                        android:src="@drawable/ic_plus" />
+
+                </LinearLayout>
 
                 <EditText
                     android:id="@+id/etMemo"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
+                    android:layout_marginTop="4dp"
                     android:background="@null"
-                    android:gravity="top"
                     android:hint="@string/detail_memo_hint"
                     android:inputType="textMultiLine"
-                    android:minLines="3"
+                    android:maxLines="4"
                     android:textColor="@color/text_primary"
                     android:textColorHint="@color/text_secondary"
-                    android:textSize="13sp"
-                    tools:text="레퍼런스 정리 후 초안 작성하기" />
+                    android:textSize="13sp" />
 
             </LinearLayout>
 
