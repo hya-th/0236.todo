@@ -20,6 +20,10 @@ import java.time.format.TextStyle
 import java.time.temporal.TemporalAdjusters
 import java.util.Locale
 
+/**
+ * 위클리(이번 주 플래너) 화면. 일~토 7일 목록을 만들어 각 날짜의 투두로 이동하게 하고,
+ * 주간 급여 현황과 '한 주 회고'(주 단위 키로 저장/불러오기)를 제공한다.
+ */
 class WeeklyFragment : Fragment() {
 
     private var _binding: FragmentWeeklyBinding? = null

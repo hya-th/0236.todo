@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- 설명: 할 일 체크박스 버튼 셀렉터(체크=핑크원, 미체크=빈원) -->
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:drawable="@drawable/ic_check_circle" android:state_checked="true" />
     <item android:drawable="@drawable/ic_circle" />

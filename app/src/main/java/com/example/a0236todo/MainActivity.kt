@@ -13,6 +13,12 @@ import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.navOptions
 import com.example.a0236todo.databinding.ActivityMainBinding
 
+/**
+ * 앱의 메인 화면. 하나의 [NavHostFragment]로 모든 화면(홈/투두/캘린더/위클리 등)을 호스팅하고,
+ * 커스텀 하단 네비게이션(GNB)을 [NavController]와 직접 연동한다.
+ * - 탭 클릭 → 해당 목적지로 이동(상태 저장)
+ * - 목적지 변경 → 활성 탭을 핑크 박스로 강조 (상세/하위 화면은 소속 탭을 활성으로 표시)
+ */
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding

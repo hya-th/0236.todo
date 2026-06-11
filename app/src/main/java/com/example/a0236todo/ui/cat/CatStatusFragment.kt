@@ -18,6 +18,10 @@ import java.time.format.TextStyle
 import java.time.temporal.TemporalAdjusters
 import java.util.Locale
 
+/**
+ * '오늘의 냥이' 상태 대시보드. 상단의 주간 날짜 칩으로 날짜를 고르고,
+ * 선택한 날짜의 완료율을 원형 링/퍼센트와 스탯 카드(완료/진행률/남은 일/연속 출석)로 보여준다.
+ */
 class CatStatusFragment : Fragment() {
 
     private var _binding: FragmentCatStatusBinding? = null

@@ -15,6 +15,11 @@ import com.example.a0236todo.databinding.FragmentTodoDetailBinding
 import com.example.a0236todo.databinding.ItemMemoEntryBinding
 import com.example.a0236todo.util.DateUtils
 
+/**
+ * 할 일 상세 화면. 제목/날짜/시간/고양이 알림/우선순위를 보여주고,
+ * 메모는 입력 → ＋ 추가 → 목록(번호+삭제) 형태로 관리한다.
+ * '완료'로 저장(메모는 줄바꿈으로 합쳐 저장), '삭제'로 제거 후 뒤로 간다.
+ */
 class TodoDetailFragment : Fragment() {
 
     private var _binding: FragmentTodoDetailBinding? = null

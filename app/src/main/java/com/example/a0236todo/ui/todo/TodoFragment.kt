@@ -25,6 +25,12 @@ import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
+/**
+ * '오늘의 할 일'(투두) 화면.
+ * - 날짜 이동, 완료 개수/밥그릇 표시, 전체 비우기(휴지통), 지난 날짜 일기 쓰기
+ * - 할 일 추가 다이얼로그(제목/하루종일/시작·종료/반복/테마색)
+ * - 항목 탭 → 상세, 캘린더에서 dateKey 인자로 진입 시 해당 날짜로 표시
+ */
 class TodoFragment : Fragment() {
 
     private val dbDateFmt: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")

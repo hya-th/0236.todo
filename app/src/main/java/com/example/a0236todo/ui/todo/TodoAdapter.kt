@@ -11,6 +11,14 @@ import com.example.a0236todo.data.TodoEntity
 import com.example.a0236todo.databinding.ItemMemoLineBinding
 import com.example.a0236todo.databinding.ItemTodoBinding
 
+/**
+ * 할 일 목록 RecyclerView 어댑터.
+ * 체크 토글/행 클릭(상세 이동) 콜백을 받고, 메모가 있으면 ▼로 펼쳐
+ * 트리 커넥터 + 핑크 박스로 메모를 보여준다(펼침 상태는 [expandedIds]로 유지).
+ *
+ * @param onToggle 체크박스 토글 시 호출
+ * @param onClick 행(카드) 클릭 시 호출
+ */
 class TodoAdapter(
     private val onToggle: (TodoEntity) -> Unit,
     private val onClick: (TodoEntity) -> Unit = {}

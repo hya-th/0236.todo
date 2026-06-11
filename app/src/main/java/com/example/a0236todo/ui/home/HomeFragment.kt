@@ -11,6 +11,11 @@ import com.bumptech.glide.Glide
 import com.example.a0236todo.R
 import com.example.a0236todo.databinding.FragmentHomeBinding
 
+/**
+ * 홈 화면. 오늘의 진행률(밥그릇)·인사말을 보여주고,
+ * '오늘의 냥이' 카드와 전체todo/월간/위클리 바로가기로 각 화면에 진입한다.
+ * 하단에는 Glide로 고양이 GIF(cat_home)를 표시한다.
+ */
 class HomeFragment : Fragment() {
 
     private var _binding: FragmentHomeBinding? = null

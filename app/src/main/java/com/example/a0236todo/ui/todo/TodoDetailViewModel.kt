@@ -10,6 +10,7 @@ import com.example.a0236todo.TodoApplication
 import com.example.a0236todo.data.TodoEntity
 import kotlinx.coroutines.launch
 
+/** 할 일 상세용 ViewModel. id로 단건을 관찰하고 저장/삭제를 처리한다. */
 class TodoDetailViewModel(app: Application) : AndroidViewModel(app) {
 
     private val repository = (app as TodoApplication).repository

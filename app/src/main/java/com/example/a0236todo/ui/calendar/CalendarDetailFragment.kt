@@ -15,6 +15,10 @@ import com.example.a0236todo.ui.todo.TodoAdapter
 import com.example.a0236todo.ui.todo.TodoViewModel
 import com.example.a0236todo.util.DateUtils
 
+/**
+ * 캘린더 상세 화면. 전달받은 날짜(dateKey)의 할 일을 타임라인으로 보여주고,
+ * 진행률/하루 보상 카드와 일기 버튼을 제공한다. (투두와 동일한 [TodoViewModel] 재사용)
+ */
 class CalendarDetailFragment : Fragment() {
 
     private var _binding: FragmentCalendarDetailBinding? = null

@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- 설명: 색상 리소스 - Y2K 파스텔 팔레트 -->
 <resources>
     <!-- Base -->
     <color name="bg">#F8FAF8</color>

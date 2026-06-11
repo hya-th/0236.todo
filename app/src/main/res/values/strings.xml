@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- 설명: 문자열 리소스 -->
 <resources>
     <string name="app_name">0236 투두</string>
 

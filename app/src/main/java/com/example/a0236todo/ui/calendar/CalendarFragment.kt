@@ -17,6 +17,10 @@ import java.time.LocalDate
 import java.time.YearMonth
 import java.time.format.DateTimeFormatter
 
+/**
+ * 캘린더(월간 플래너) 화면. 현재 월의 달력 그리드를 코드로 생성하고,
+ * 날짜를 누르면 해당 날짜의 투두 화면으로 이동한다. 월 이동/월간 통계 표시.
+ */
 class CalendarFragment : Fragment() {
 
     private var _binding: FragmentCalendarBinding? = null

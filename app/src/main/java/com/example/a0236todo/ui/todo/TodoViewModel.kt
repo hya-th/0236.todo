@@ -11,6 +11,11 @@ import com.example.a0236todo.data.TodoEntity
 import com.example.a0236todo.util.DateUtils
 import kotlinx.coroutines.launch
 
+/**
+ * 투두 화면용 ViewModel.
+ * 선택된 날짜([date])를 기준으로 할 일 목록을 관찰하고, 추가/완료/삭제/전체비우기와
+ * 일기 저장을 Repository에 위임한다.
+ */
 class TodoViewModel(app: Application) : AndroidViewModel(app) {
 
     private val repository = (app as TodoApplication).repository
