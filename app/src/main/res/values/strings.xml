@@ -50,6 +50,15 @@
     <string name="calendar_bowl_title">이번 달 냥이 밥그릇</string>
     <string name="calendar_streak_title">연속 급여 (출석체크)</string>
 
+    <!-- Clear all -->
+    <string name="clear_all">전체 비우기</string>
+    <string name="clear_all_msg">오늘의 할 일을 모두 삭제할까요?</string>
+
+    <!-- Weekly reflection -->
+    <string name="weekly_reflection_title">한 주 회고</string>
+    <string name="weekly_reflection_hint">이번 주는 어땠나요? 느낀 점을 적어보세요 🐾</string>
+    <string name="weekly_saved">회고를 저장했어요</string>
+
     <!-- Diary -->
     <string name="diary_write">일기 쓰기</string>
     <string name="diary_edit">일기 보기 · 수정</string>

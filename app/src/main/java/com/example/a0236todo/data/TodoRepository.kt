@@ -19,6 +19,8 @@ class TodoRepository(
 
     suspend fun delete(todo: TodoEntity) = dao.delete(todo)
 
+    suspend fun clearDate(date: String) = dao.deleteByDate(date)
+
     // --- Diary ---
     suspend fun getDiary(date: String) = diaryDao.getByDate(date)
 

@@ -57,6 +57,7 @@ class TodoFragment : Fragment() {
         binding.btnNext.setOnClickListener { viewModel.nextDay() }
         binding.btnAdd.setOnClickListener { showAddDialog() }
         binding.diaryBar.setOnClickListener { showDiaryDialog() }
+        binding.btnClear.setOnClickListener { showClearAllDialog() }
 
         viewModel.date.observe(viewLifecycleOwner) { key ->
             binding.tvSelectedDate.text = DateUtils.displayShort(key)
@@ -81,6 +82,15 @@ class TodoFragment : Fragment() {
             .setPositiveButton(R.string.action_add) { _, _ ->
                 viewModel.add(dialogBinding.etTitle.text?.toString().orEmpty())
             }
+            .setNegativeButton(R.string.action_cancel, null)
+            .show()
+    }
+
+    private fun showClearAllDialog() {
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle(R.string.clear_all)
+            .setMessage(R.string.clear_all_msg)
+            .setPositiveButton(R.string.action_delete) { _, _ -> viewModel.clearAll() }
             .setNegativeButton(R.string.action_cancel, null)
             .show()
     }

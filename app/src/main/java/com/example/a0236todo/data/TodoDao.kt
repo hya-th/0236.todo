@@ -28,4 +28,7 @@ interface TodoDao {
 
     @Delete
     suspend fun delete(todo: TodoEntity)
+
+    @Query("DELETE FROM todos WHERE date = :date")
+    suspend fun deleteByDate(date: String)
 }

@@ -50,6 +50,11 @@ class TodoViewModel(app: Application) : AndroidViewModel(app) {
         repository.delete(todo)
     }
 
+    /** 현재 날짜의 모든 할 일 삭제 (전체 비우기) */
+    fun clearAll() = viewModelScope.launch {
+        repository.clearDate(_date.value!!)
+    }
+
     /** 해당 날짜의 일기 내용을 콜백으로 전달 (없으면 빈 문자열). */
     fun loadDiary(date: String, onResult: (String) -> Unit) = viewModelScope.launch {
         onResult(repository.getDiary(date)?.content ?: "")
