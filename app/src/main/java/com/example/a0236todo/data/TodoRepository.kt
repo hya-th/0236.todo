@@ -5,35 +5,40 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.map
 import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
 
 /**
- * 할 일/일기 데이터를 **JSON 파일**로 생성·관리하는 저장소.
+ * 할 일/일기 데이터를 **단일 JSON 파일(data.json)** 로 생성·관리하는 저장소.
  *
- * - todos.json : 할 일 목록(List<TodoEntity>)
- * - diaries.json : 일기/회고(Map<date, content>)
+ * 구조:
+ * ```
+ * { "todos": [ ... ], "diaries": { "yyyy-MM-dd": "내용", ... } }
+ * ```
  *
- * 메모리 상의 목록을 LiveData로 노출하고, 변경 시마다 JSON 파일에 직렬화해 저장한다.
+ * - 최초 실행 시 `assets/data.json` 을 초기 데이터로 읽어온다(seed).
+ * - assets 는 읽기 전용이므로, 이후 모든 변경은 내부 저장소(filesDir)의 `data.json` 에 저장한다.
  */
-class TodoRepository(context: Context) {
+class TodoRepository(private val context: Context) {
 
     private val gson = Gson()
-    private val todoFile = File(context.filesDir, "todos.json")
-    private val diaryFile = File(context.filesDir, "diaries.json")
+    private val file = File(context.filesDir, FILE_NAME)
 
     private val items = mutableListOf<TodoEntity>()
     private val diaries = mutableMapOf<String, String>()
     private var nextId = 1L
 
-    /** 전체 할 일(스냅샷)을 담는 LiveData. 날짜별 조회는 여기서 파생한다. */
     private val allTodos = MutableLiveData<List<TodoEntity>>(emptyList())
 
+    /** data.json 의 직렬화 형태 */
+    private data class AppData(
+        val todos: List<TodoEntity>? = null,
+        val diaries: Map<String, String>? = null
+    )
+
     init {
-        loadTodos()
-        loadDiaries()
+        load()
     }
 
     // ---------------- 조회 ----------------
@@ -54,7 +59,7 @@ class TodoRepository(context: Context) {
     suspend fun insert(todo: TodoEntity): Long = withContext(Dispatchers.IO) {
         val saved = todo.copy(id = nextId++)
         items.add(saved)
-        saveTodos()
+        save()
         saved.id
     }
 
@@ -62,18 +67,18 @@ class TodoRepository(context: Context) {
         val index = items.indexOfFirst { it.id == todo.id }
         if (index >= 0) {
             items[index] = todo
-            saveTodos()
+            save()
         }
     }
 
     suspend fun delete(todo: TodoEntity) = withContext(Dispatchers.IO) {
         items.removeAll { it.id == todo.id }
-        saveTodos()
+        save()
     }
 
     suspend fun clearDate(date: String) = withContext(Dispatchers.IO) {
         items.removeAll { it.date == date }
-        saveTodos()
+        save()
     }
 
     // ---------------- 일기/회고 ----------------
@@ -83,36 +88,42 @@ class TodoRepository(context: Context) {
 
     suspend fun saveDiary(date: String, content: String) = withContext(Dispatchers.IO) {
         if (content.isBlank()) diaries.remove(date) else diaries[date] = content.trim()
-        diaryFile.writeText(gson.toJson(diaries))
+        save()
     }
 
     // ---------------- JSON 입출력 ----------------
 
-    private fun loadTodos() {
-        if (todoFile.exists()) {
+    private fun load() {
+        readJson()?.let { json ->
             runCatching {
-                val type = object : TypeToken<List<TodoEntity>>() {}.type
-                val loaded: List<TodoEntity> = gson.fromJson(todoFile.readText(), type) ?: emptyList()
-                items.addAll(loaded)
+                gson.fromJson(json, AppData::class.java)
+            }.getOrNull()?.let { data ->
+                items.addAll(data.todos ?: emptyList())
+                diaries.putAll(data.diaries ?: emptyMap())
                 nextId = (items.maxOfOrNull { it.id } ?: 0L) + 1
             }
         }
         allTodos.postValue(items.toList())
     }
 
-    private fun loadDiaries() {
-        if (diaryFile.exists()) {
-            runCatching {
-                val type = object : TypeToken<Map<String, String>>() {}.type
-                val loaded: Map<String, String> = gson.fromJson(diaryFile.readText(), type) ?: emptyMap()
-                diaries.putAll(loaded)
-            }
-        }
+    /** 내부 저장소 우선, 없으면 assets/data.json 을 초기값으로 읽는다. */
+    private fun readJson(): String? = if (file.exists()) {
+        runCatching { file.readText() }.getOrNull()
+    } else {
+        runCatching {
+            context.assets.open(FILE_NAME).bufferedReader().use { it.readText() }
+        }.getOrNull()
     }
 
-    /** 메모리 목록을 JSON으로 저장하고 LiveData를 갱신한다. */
-    private fun saveTodos() {
-        todoFile.writeText(gson.toJson(items))
+    /** 현재 데이터를 내부 저장소 data.json 에 저장하고 LiveData 를 갱신한다. */
+    private fun save() {
+        runCatching {
+            file.writeText(gson.toJson(AppData(items.toList(), diaries.toMap())))
+        }
         allTodos.postValue(items.toList())
+    }
+
+    companion object {
+        private const val FILE_NAME = "data.json"
     }
 }
