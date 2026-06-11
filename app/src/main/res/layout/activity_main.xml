@@ -13,26 +13,59 @@
         android:layout_width="0dp"
         android:layout_height="0dp"
         app:defaultNavHost="true"
-        app:layout_constraintBottom_toTopOf="@id/bottom_nav"
+        app:layout_constraintBottom_toTopOf="@id/bottomNav"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:navGraph="@navigation/nav_graph" />
 
-    <com.google.android.material.bottomnavigation.BottomNavigationView
-        android:id="@+id/bottom_nav"
+    <LinearLayout
+        android:id="@+id/bottomNav"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:background="@color/white"
-        app:itemActiveIndicatorStyle="@style/BottomNavIndicator"
-        app:itemIconTint="@color/bottom_nav_color"
-        app:itemTextColor="@color/bottom_nav_color"
-        app:itemTextAppearanceActive="@style/BottomNavTextActive"
-        app:itemTextAppearanceInactive="@style/BottomNavTextInactive"
-        app:labelVisibilityMode="labeled"
+        android:orientation="horizontal"
+        android:paddingVertical="6dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:menu="@menu/bottom_nav_menu" />
+        app:layout_constraintStart_toStartOf="parent">
+
+        <LinearLayout android:id="@+id/navHome" style="@style/NavCell">
+            <LinearLayout android:id="@+id/navHomeBox" style="@style/NavBox">
+                <ImageView android:id="@+id/navHomeIcon" style="@style/NavIcon"
+                    android:contentDescription="@string/nav_home" android:src="@drawable/ic_home" />
+                <TextView android:id="@+id/navHomeLabel" style="@style/NavLabel"
+                    android:text="@string/nav_home" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <LinearLayout android:id="@+id/navTodo" style="@style/NavCell">
+            <LinearLayout android:id="@+id/navTodoBox" style="@style/NavBox">
+                <ImageView android:id="@+id/navTodoIcon" style="@style/NavIcon"
+                    android:contentDescription="@string/nav_todo" android:src="@drawable/ic_todo" />
+                <TextView android:id="@+id/navTodoLabel" style="@style/NavLabel"
+                    android:text="@string/nav_todo" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <LinearLayout android:id="@+id/navCalendar" style="@style/NavCell">
+            <LinearLayout android:id="@+id/navCalendarBox" style="@style/NavBox">
+                <ImageView android:id="@+id/navCalendarIcon" style="@style/NavIcon"
+                    android:contentDescription="@string/nav_calendar" android:src="@drawable/ic_calendar" />
+                <TextView android:id="@+id/navCalendarLabel" style="@style/NavLabel"
+                    android:text="@string/nav_calendar" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <LinearLayout android:id="@+id/navWeekly" style="@style/NavCell">
+            <LinearLayout android:id="@+id/navWeeklyBox" style="@style/NavBox">
+                <ImageView android:id="@+id/navWeeklyIcon" style="@style/NavIcon"
+                    android:contentDescription="@string/nav_weekly" android:src="@drawable/ic_weekly" />
+                <TextView android:id="@+id/navWeeklyLabel" style="@style/NavLabel"
+                    android:text="@string/nav_weekly" />
+            </LinearLayout>
+        </LinearLayout>
+
+    </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
