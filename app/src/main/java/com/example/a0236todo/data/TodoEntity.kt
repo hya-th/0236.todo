@@ -1,10 +1,7 @@
 package com.example.a0236todo.data
 
-import androidx.room.Entity
-import androidx.room.PrimaryKey
-
 /**
- * 할 일 한 건을 나타내는 Room 엔티티.
+ * 할 일 한 건. JSON 파일로 저장/관리되는 순수 데이터 모델.
  *
  * @property date 시작 날짜 "yyyy-MM-dd"
  * @property time 시작 시간 "HH:mm" (하루 종일이면 빈 값)
@@ -12,12 +9,13 @@ import androidx.room.PrimaryKey
  * @property endDate 종료 날짜 "yyyy-MM-dd"
  * @property endTime 종료 시간 "HH:mm"
  * @property repeat 반복 여부
+ * @property color 테마 색 (#RRGGBB)
  * @property priority 0=낮음, 1=보통, 2=높음
  * @property reminder 고양이 알림 사용 여부
+ * @property memo 메모 (줄바꿈으로 여러 개)
  */
-@Entity(tableName = "todos")
 data class TodoEntity(
-    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val id: Long = 0,
     val title: String,
     val isDone: Boolean = false,
     val date: String,

@@ -1,12 +1,8 @@
 package com.example.a0236todo.data
 
-import androidx.room.Entity
-import androidx.room.PrimaryKey
-
-/** 하루에 한 개의 일기. date("yyyy-MM-dd")가 기본키. */
-@Entity(tableName = "diaries")
+/** 하루(또는 한 주)에 한 개의 일기/회고. JSON으로 저장. date가 키. */
 data class DiaryEntity(
-    @PrimaryKey val date: String,
+    val date: String,
     val content: String,
     val updatedAt: Long = System.currentTimeMillis()
 )
