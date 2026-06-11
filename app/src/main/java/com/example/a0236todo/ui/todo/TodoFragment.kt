@@ -145,6 +145,7 @@ class TodoFragment : Fragment() {
         val dialog = MaterialAlertDialogBuilder(requireContext())
             .setView(b.root)
             .create()
+        dialog.window?.setBackgroundDrawable(android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT))
 
         b.btnCancel.setOnClickListener { dialog.dismiss() }
         b.btnConfirm.setOnClickListener {
