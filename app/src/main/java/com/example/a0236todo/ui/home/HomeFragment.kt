@@ -7,6 +7,7 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
+import com.bumptech.glide.Glide
 import com.example.a0236todo.R
 import com.example.a0236todo.databinding.FragmentHomeBinding
 
@@ -27,6 +28,9 @@ class HomeFragment : Fragment() {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        // 하단 고양이 GIF (cat_home.gif) 재생
+        Glide.with(this).load(R.drawable.cat_home).into(binding.ivHomeCat)
+
         binding.cardTodayCat.setOnClickListener { findNavController().navigate(R.id.catStatusFragment) }
         binding.cardAllTodo.setOnClickListener { findNavController().navigate(R.id.todoFragment) }
         binding.cardMonthly.setOnClickListener { findNavController().navigate(R.id.calendarFragment) }
