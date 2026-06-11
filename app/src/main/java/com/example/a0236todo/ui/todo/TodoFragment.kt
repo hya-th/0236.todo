@@ -6,7 +6,6 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.HorizontalScrollView
 import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.core.os.bundleOf
@@ -16,6 +15,7 @@ import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.a0236todo.R
 import com.example.a0236todo.databinding.DialogAddTodoBinding
+import com.example.a0236todo.databinding.DialogColorPickerBinding
 import com.example.a0236todo.databinding.DialogDiaryBinding
 import com.example.a0236todo.databinding.FragmentTodoBinding
 import com.example.a0236todo.util.DateUtils
@@ -173,28 +173,19 @@ class TodoFragment : Fragment() {
 
     private fun showColorPicker(current: String, onPick: (String) -> Unit) {
         val ctx = requireContext()
-        val pad = dp(20)
-        val row = LinearLayout(ctx).apply {
-            orientation = LinearLayout.HORIZONTAL
-            setPadding(pad, pad, pad, pad)
-        }
-        val scroll = HorizontalScrollView(ctx).apply {
-            isHorizontalScrollBarEnabled = false
-            addView(row)
-        }
+        val picker = DialogColorPickerBinding.inflate(layoutInflater)
         val dialog = MaterialAlertDialogBuilder(ctx)
-            .setTitle("테마 색 선택")
-            .setView(scroll)
+            .setView(picker.root)
             .create()
 
-        val size = dp(38)
+        val size = dp(34)
         TodoColors.PRESETS.forEach { hex ->
             val swatch = View(ctx).apply {
                 layoutParams = LinearLayout.LayoutParams(size, size).apply { marginEnd = dp(8) }
                 background = TodoColors.circle(hex, dp(if (hex == current) 4 else 2))
                 setOnClickListener { onPick(hex); dialog.dismiss() }
             }
-            row.addView(swatch)
+            picker.colorRow.addView(swatch)
         }
         dialog.show()
     }
