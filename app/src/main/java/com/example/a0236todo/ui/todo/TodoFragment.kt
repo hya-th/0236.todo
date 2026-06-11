@@ -85,7 +85,7 @@ class TodoFragment : Fragment() {
 
             val done = list.count { it.isDone }
             binding.tvProgress.text = "$done / ${list.size} 완료"
-            binding.ivBowl.setImageResource(BowlAssets.resFor(done, list.size))
+            binding.ivBowl.setImageResource(BowlAssets.resFor(requireContext(), done, list.size))
         }
     }
 
