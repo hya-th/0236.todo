@@ -3,6 +3,8 @@
 
     <style name="BottomNavIndicator" parent="Widget.Material3.BottomNavigationView.ActiveIndicator">
         <item name="android:color">@color/pink_light</item>
+        <item name="android:width">62dp</item>
+        <item name="android:height">34dp</item>
     </style>
 
     <style name="BottomNavTextActive">
