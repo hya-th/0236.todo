@@ -123,11 +123,14 @@
             android:textColor="@color/text_secondary"
             android:textSize="11sp" />
 
-        <com.example.a0236todo.ui.widget.BowlFillView
-            android:id="@+id/bowlView"
-            android:layout_width="46dp"
-            android:layout_height="46dp"
-            android:layout_marginStart="8dp" />
+        <ImageView
+            android:id="@+id/ivBowl"
+            android:layout_width="wrap_content"
+            android:layout_height="42dp"
+            android:layout_marginStart="8dp"
+            android:adjustViewBounds="true"
+            android:contentDescription="@string/todo_feed_hint"
+            android:scaleType="fitCenter" />
 
     </LinearLayout>
 
