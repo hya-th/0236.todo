@@ -50,6 +50,12 @@
     <string name="calendar_bowl_title">이번 달 냥이 밥그릇</string>
     <string name="calendar_streak_title">연속 급여 (출석체크)</string>
 
+    <!-- Add todo dialog -->
+    <string name="add_title_q">어떤 할 일이냥?</string>
+    <string name="add_title_hint">제목</string>
+    <string name="add_all_day">하루 종일</string>
+    <string name="add_repeat">반복</string>
+
     <!-- Clear all -->
     <string name="clear_all">전체 비우기</string>
     <string name="clear_all_msg">오늘의 할 일을 모두 삭제할까요?</string>

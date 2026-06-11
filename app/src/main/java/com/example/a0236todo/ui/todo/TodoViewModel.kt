@@ -34,11 +34,29 @@ class TodoViewModel(app: Application) : AndroidViewModel(app) {
         _date.value = DateUtils.shift(_date.value!!, 1)
     }
 
-    fun add(title: String) {
+    fun add(
+        title: String,
+        date: String,
+        time: String,
+        allDay: Boolean,
+        endDate: String,
+        endTime: String,
+        repeat: Boolean
+    ) {
         val text = title.trim()
         if (text.isEmpty()) return
         viewModelScope.launch {
-            repository.insert(TodoEntity(title = text, date = _date.value!!))
+            repository.insert(
+                TodoEntity(
+                    title = text,
+                    date = date,
+                    time = time,
+                    allDay = allDay,
+                    endDate = endDate,
+                    endTime = endTime,
+                    repeat = repeat
+                )
+            )
         }
     }
 

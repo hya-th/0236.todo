@@ -1,5 +1,7 @@
 package com.example.a0236todo.ui.todo
 
+import android.app.DatePickerDialog
+import android.app.TimePickerDialog
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -16,8 +18,19 @@ import com.example.a0236todo.databinding.DialogDiaryBinding
 import com.example.a0236todo.databinding.FragmentTodoBinding
 import com.example.a0236todo.util.DateUtils
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import java.time.LocalDate
+import java.time.LocalTime
+import java.time.format.DateTimeFormatter
+import java.util.Locale
 
 class TodoFragment : Fragment() {
+
+    private val dbDateFmt: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+    private val dbTimeFmt: DateTimeFormatter = DateTimeFormatter.ofPattern("HH:mm")
+    private val uiDateFmt: DateTimeFormatter =
+        DateTimeFormatter.ofPattern("M월 d일 (E)", Locale.KOREAN)
+    private val uiTimeFmt: DateTimeFormatter =
+        DateTimeFormatter.ofPattern("a h:mm", Locale.KOREAN)
 
     private var _binding: FragmentTodoBinding? = null
     private val binding get() = _binding!!
@@ -75,15 +88,75 @@ class TodoFragment : Fragment() {
     }
 
     private fun showAddDialog() {
-        val dialogBinding = DialogAddTodoBinding.inflate(layoutInflater)
-        MaterialAlertDialogBuilder(requireContext())
-            .setTitle(R.string.action_add)
-            .setView(dialogBinding.root)
-            .setPositiveButton(R.string.action_add) { _, _ ->
-                viewModel.add(dialogBinding.etTitle.text?.toString().orEmpty())
+        val b = DialogAddTodoBinding.inflate(layoutInflater)
+
+        // 시작/종료 날짜·시간 상태 (시작 = 현재 보고 있는 날짜, 종료 = +1시간)
+        var startDate = LocalDate.parse(viewModel.date.value ?: DateUtils.todayKey(), dbDateFmt)
+        var startTime = LocalTime.now().withMinute(0)
+        var endDate = startDate
+        var endTime = startTime.plusHours(1)
+
+        fun refresh() {
+            b.tvStartDate.text = startDate.format(uiDateFmt)
+            b.tvEndDate.text = endDate.format(uiDateFmt)
+            val allDay = b.swAllDay.isChecked
+            b.tvStartTime.visibility = if (allDay) View.GONE else View.VISIBLE
+            b.tvEndTime.visibility = if (allDay) View.GONE else View.VISIBLE
+            b.tvStartTime.text = startTime.format(uiTimeFmt)
+            b.tvEndTime.text = endTime.format(uiTimeFmt)
+        }
+        refresh()
+
+        b.swAllDay.setOnCheckedChangeListener { _, _ -> refresh() }
+
+        b.startGroup.setOnClickListener {
+            DatePickerDialog(requireContext(), { _, y, m, d ->
+                startDate = LocalDate.of(y, m + 1, d)
+                if (endDate.isBefore(startDate)) endDate = startDate
+                TimePickerDialog(requireContext(), { _, h, min ->
+                    startTime = LocalTime.of(h, min)
+                    refresh()
+                }, startTime.hour, startTime.minute, false).show()
+                refresh()
+            }, startDate.year, startDate.monthValue - 1, startDate.dayOfMonth).show()
+        }
+        b.endGroup.setOnClickListener {
+            DatePickerDialog(requireContext(), { _, y, m, d ->
+                endDate = LocalDate.of(y, m + 1, d)
+                TimePickerDialog(requireContext(), { _, h, min ->
+                    endTime = LocalTime.of(h, min)
+                    refresh()
+                }, endTime.hour, endTime.minute, false).show()
+                refresh()
+            }, endDate.year, endDate.monthValue - 1, endDate.dayOfMonth).show()
+        }
+
+        val dialog = MaterialAlertDialogBuilder(requireContext())
+            .setView(b.root)
+            .create()
+
+        b.btnCancel.setOnClickListener { dialog.dismiss() }
+        b.btnConfirm.setOnClickListener {
+            val title = b.etTitle.text?.toString().orEmpty().trim()
+            if (title.isEmpty()) {
+                b.etTitle.error = getString(R.string.add_title_hint)
+                return@setOnClickListener
             }
-            .setNegativeButton(R.string.action_cancel, null)
-            .show()
+            val allDay = b.swAllDay.isChecked
+            val startKey = startDate.format(dbDateFmt)
+            viewModel.add(
+                title = title,
+                date = startKey,
+                time = if (allDay) "" else startTime.format(dbTimeFmt),
+                allDay = allDay,
+                endDate = endDate.format(dbDateFmt),
+                endTime = if (allDay) "" else endTime.format(dbTimeFmt),
+                repeat = b.swRepeat.isChecked
+            )
+            viewModel.setDate(startKey) // 추가한 날짜로 이동해 바로 보이도록
+            dialog.dismiss()
+        }
+        dialog.show()
     }
 
     private fun showClearAllDialog() {
