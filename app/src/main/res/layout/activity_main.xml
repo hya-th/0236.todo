@@ -26,6 +26,7 @@
         android:background="@color/white"
         app:itemActiveIndicatorStyle="@style/BottomNavIndicator"
         app:itemIconTint="@color/bottom_nav_color"
+        app:itemTextColor="@color/bottom_nav_color"
         app:itemTextAppearanceActive="@style/BottomNavTextActive"
         app:itemTextAppearanceInactive="@style/BottomNavTextInactive"
         app:labelVisibilityMode="labeled"
