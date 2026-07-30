@@ -18,6 +18,7 @@ property string previewVoiceRUID = ""
 property string bgmRUID = ""
 property number bgmBaseVolume = 1
 property boolean bgmPlaying = false
+property table bgmHandle = {}
 property any settingsHandler = nil
 
 @ExecSpace("ClientOnly")
@@ -97,6 +98,8 @@ end
 
 @ExecSpace("ClientOnly")
 method void PlayBgmNow()
+self:StopBgmSound()
+
 local v = self.bgmBaseVolume * self:GetBgmVolume01()
 if v <= 0 then
 	log("[SoundChannels] BGM 볼륨 0 — 재생 생략")
@@ -104,10 +107,17 @@ if v <= 0 then
 end
 
 local ruid = self.bgmRUID
-pcall(function()
-	_SoundService:PlaySound(ruid, v)
+local ok, handle = pcall(function()
+	return _SoundService:PlaySound(ruid, v)
 end)
-log("[SoundChannels] BGM 재생 (볼륨 " .. tostring(v) .. ")")
+if ok then
+	if handle ~= nil then
+		self.bgmHandle = { h = handle }
+	end
+	log("[SoundChannels] BGM 재생 (볼륨 " .. tostring(v) .. ")")
+else
+	log("[SoundChannels] BGM 재생 실패(무시)")
+end
 end
 
 @ExecSpace("ClientOnly")
@@ -115,7 +125,6 @@ method void RestartBgm()
 -- 재생 중인 BGM이 있을 때만, 껐다 새 볼륨으로 다시 튼다.
 if self.bgmPlaying == false then return end
 if self.bgmRUID == "" then return end
-self:StopBgmSound()
 self:PlayBgmNow()
 end
 
@@ -128,9 +137,16 @@ end
 
 @ExecSpace("ClientOnly")
 method void StopBgmSound()
--- 재생 중인 BGM 정지. 프로젝트의 정지 방법이 다르면 이 메서드만 고치면 된다.
+-- 보관해 둔 핸들로 정지(RhythmGameManager의 StopBGM과 같은 방식).
+if self.bgmHandle == nil then
+	self.bgmHandle = {}
+	return
+end
+local h = self.bgmHandle.h
+self.bgmHandle = {}
+if h == nil then return end
 pcall(function()
-	_SoundService:StopAllSound()
+	_SoundService:StopSound(h)
 end)
 end
 
