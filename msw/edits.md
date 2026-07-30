@@ -12,10 +12,7 @@
 -- 볼륨은 설정(_SoundChannels)이 관리한다.
 -- self.bgmVolume은 "이 BGM의 기본 크기"로 남고, 거기에 설정 비율이 곱해진다.
 self.bgmHandle = {}
-local handle = _SoundChannels:PlayBgm(self.bgmRUID, self.bgmVolume)
-if handle ~= nil then
-	self.bgmHandle = { h = handle }
-end
+_SoundChannels:PlayBgm(self.bgmRUID, self.bgmVolume)
 ```
 
 ## 2. RhythmGameManager — `StopBGM`

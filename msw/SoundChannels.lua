@@ -2,32 +2,26 @@
 script SoundChannels extends Logic
 
 -- ================================================================
--- 사운드 볼륨 게이트웨이. 게임의 모든 사운드 재생은 이 로직을 거쳐야
--- 설정의 BGM / 효과음 볼륨이 실제로 반영된다.
+-- 사운드 볼륨 게이트웨이. 모든 재생이 여기를 거쳐야 설정 볼륨이 반영된다.
 --
---   _SoundChannels:PlaySfx(ruid, 기본볼륨)      -- 효과음 재생
---   _SoundChannels:PlayBgm(ruid, 기본볼륨)      -- BGM 재생(핸들 보관)
---   _SoundChannels:ScaleSfx(기본볼륨)           -- SoundComponent.Volume에 넣을 값
+--   _SoundChannels:PlaySfx(ruid, 기본볼륨)   -- 효과음 재생
+--   _SoundChannels:PlayBgm(ruid, 기본볼륨)   -- BGM 재생
 --   _SoundChannels:StopBgm()
+--   _SoundChannels:ScaleSfx(기본볼륨)        -- SoundComponent.Volume에 넣을 값
 --
--- 볼륨은 SettingsManager의 draft를 읽는다. 그래서
---   · 슬라이더를 움직이면 즉시 반영되고(미리듣기),
---   · 저장 없이 닫으면 RevertDraftToSaved로 함께 되돌아가고,
---   · 로그인/맵 진입 시 로드된 값이 그대로 쓰인다.
--- 0%는 완전 무음(재생 자체를 건너뜀).
+-- 볼륨은 SettingsManager의 draft를 읽는다(슬라이더 즉시 반영,
+-- 저장 없이 닫으면 함께 복구). 0%는 완전 무음.
 -- ================================================================
 
-property string previewSfxRUID = "" -- 효과음 슬라이더 미리듣기 샘플
-property string previewVoiceRUID = "" -- 음성 슬라이더 미리듣기 샘플
-
-property table bgmHandle = {} -- 재생 중인 BGM 핸들
-property number bgmBaseVolume = 1 -- 현재 BGM의 기본 볼륨(설정 비율을 곱하기 전)
+property string previewSfxRUID = ""
+property string previewVoiceRUID = ""
+property string bgmRUID = ""
+property number bgmBaseVolume = 1
+property boolean bgmPlaying = false
 property any settingsHandler = nil
 
 @ExecSpace("ClientOnly")
 method void OnBeginPlay()
--- 설정이 바뀌거나 뒤늦게 로드되면 재생 중인 BGM에 바로 반영한다.
--- (전투 진입 직후 BGM이 먼저 시작되고 설정 로드가 나중에 도착하는 경우 대비)
 self.settingsHandler = _SettingsManager:ConnectEvent(SettingsChangedEvent, self.OnSettingsChanged)
 end
 
@@ -40,9 +34,18 @@ end
 
 @ExecSpace("ClientOnly")
 method void OnSettingsChanged(SettingsChangedEvent event)
+-- 설정이 바뀌거나 뒤늦게 로드되면 BGM을 새 볼륨으로 다시 재생한다.
 local k = event.kind
-if k == "volume" or k == "loaded" or k == "applied" or k == "restored" or k == "reverted" then
-	self:PushBgmVolume()
+if k == "volume" then
+	self:RestartBgm()
+elseif k == "loaded" then
+	self:RestartBgm()
+elseif k == "applied" then
+	self:RestartBgm()
+elseif k == "restored" then
+	self:RestartBgm()
+elseif k == "reverted" then
+	self:RestartBgm()
 end
 end
 
@@ -57,123 +60,84 @@ return _SettingsManager:GetVolume01("sfx")
 end
 
 @ExecSpace("ClientOnly")
-method number GetVoiceVolume01()
-return _SettingsManager:GetVolume01("voice")
-end
-
-@ExecSpace("ClientOnly")
 method number ScaleSfx(number baseVolume)
--- SoundComponent.Volume에 직접 넣을 값(원래 볼륨 × 설정 비율).
--- 클론해서 재생하는 방식(GachaResultPopup)에서 쓴다.
-local base = baseVolume
-if base == nil then base = 1 end
-return base * self:GetSfxVolume01()
-end
-
-@ExecSpace("ClientOnly")
-method number ScaleVoice(number baseVolume)
-local base = baseVolume
-if base == nil then base = 1 end
-return base * self:GetVoiceVolume01()
+-- SoundComponent.Volume에 직접 넣을 값(원래 볼륨 x 설정 비율).
+return baseVolume * self:GetSfxVolume01()
 end
 
 @ExecSpace("ClientOnly")
 method void PlaySfx(string ruid, number baseVolume)
--- 효과음 재생. 기존 _SoundService:PlaySound(ruid, vol) 자리를 이걸로 바꾼다.
-if ruid == nil or ruid == "" then return end
-local v = self:ScaleSfx(baseVolume)
-if v <= 0 then return end -- 0% = 완전 무음
-pcall(function()
-	_SoundService:PlaySound(ruid, v)
-end)
-end
+-- 기존 _SoundService:PlaySound(ruid, vol) 자리를 이걸로 바꾼다.
+if ruid == nil then return end
+if ruid == "" then return end
 
-@ExecSpace("ClientOnly")
-method void PlayVoice(string ruid, number baseVolume)
-if ruid == nil or ruid == "" then return end
-local v = self:ScaleVoice(baseVolume)
+local v = baseVolume * self:GetSfxVolume01()
 if v <= 0 then return end
+
 pcall(function()
 	_SoundService:PlaySound(ruid, v)
 end)
 end
 
 @ExecSpace("ClientOnly")
-method any PlayBgm(string ruid, number baseVolume)
--- BGM 재생 + 핸들 보관. 재생 중에도 설정이 바뀌면 PushBgmVolume이 반영한다.
-self:StopBgm()
-if ruid == nil or ruid == "" then
+method void PlayBgm(string ruid, number baseVolume)
+-- BGM 재생. 어떤 곡을 어떤 크기로 틀었는지 기억해 두었다가,
+-- 설정이 바뀌면 RestartBgm으로 새 볼륨에 맞춰 다시 재생한다.
+if ruid == nil then return end
+if ruid == "" then
 	log("[SoundChannels] BGM RUID 없음 — 무음으로 진행")
-	return nil
+	return
 end
 
-local base = baseVolume
-if base == nil then base = 1 end
-self.bgmBaseVolume = base
-
-local v = base * self:GetBgmVolume01()
-local ok, handle = pcall(function()
-	return _SoundService:PlaySound(ruid, v)
-end)
-if ok == false then
-	log("[SoundChannels] BGM 재생 실패(무시)")
-	return nil
-end
-
-if handle ~= nil then
-	self.bgmHandle = { h = handle }
-end
-log("[SoundChannels] BGM 재생 (볼륨 " .. tostring(v) .. ")")
-return handle
+self.bgmRUID = ruid
+self.bgmBaseVolume = baseVolume
+self.bgmPlaying = true
+self:PlayBgmNow()
 end
 
 @ExecSpace("ClientOnly")
-method void RegisterBgmHandle(any handle, number baseVolume)
--- 기존 코드가 직접 PlaySound를 호출했을 때, 그 핸들만 넘겨받아 관리한다.
-self.bgmHandle = {}
-if handle == nil then return end
-local base = baseVolume
-if base == nil then base = 1 end
-self.bgmBaseVolume = base
-self.bgmHandle = { h = handle }
-self:PushBgmVolume()
+method void PlayBgmNow()
+local v = self.bgmBaseVolume * self:GetBgmVolume01()
+if v <= 0 then
+	log("[SoundChannels] BGM 볼륨 0 — 재생 생략")
+	return
+end
+
+local ruid = self.bgmRUID
+pcall(function()
+	_SoundService:PlaySound(ruid, v)
+end)
+log("[SoundChannels] BGM 재생 (볼륨 " .. tostring(v) .. ")")
+end
+
+@ExecSpace("ClientOnly")
+method void RestartBgm()
+-- 재생 중인 BGM이 있을 때만, 껐다 새 볼륨으로 다시 튼다.
+if self.bgmPlaying == false then return end
+if self.bgmRUID == "" then return end
+self:StopBgmSound()
+self:PlayBgmNow()
 end
 
 @ExecSpace("ClientOnly")
 method void StopBgm()
-if self.bgmHandle == nil then
-	self.bgmHandle = {}
-	return
-end
-local h = self.bgmHandle.h
-self.bgmHandle = {}
-if h == nil then return end
-pcall(function()
-	_SoundService:StopSound(h)
-end)
+self.bgmPlaying = false
+self.bgmRUID = ""
+self:StopBgmSound()
 end
 
 @ExecSpace("ClientOnly")
-method void PushBgmVolume()
--- 재생 중인 BGM에 현재 설정 볼륨을 즉시 반영한다.
--- 핸들에 볼륨 필드가 없는 구현이면 다음 재생부터 적용된다.
-if self.bgmHandle == nil then return end
-local h = self.bgmHandle.h
-if h == nil then return end
-
-local v = self.bgmBaseVolume * self:GetBgmVolume01()
-local ok = pcall(function()
-	h.Volume = v
+method void StopBgmSound()
+-- 재생 중인 BGM 정지. 프로젝트의 정지 방법이 다르면 이 메서드만 고치면 된다.
+pcall(function()
+	_SoundService:StopAllSound()
 end)
-if ok == false then
-	log("[SoundChannels] 재생 중 BGM 볼륨 변경 불가 — 다음 재생부터 적용")
-end
 end
 
 @ExecSpace("ClientOnly")
 method void PreviewSfx()
 -- 효과음 슬라이더에서 손을 놓는 순간 1회 재생.
-if self.previewSfxRUID == nil or self.previewSfxRUID == "" then
+if self.previewSfxRUID == "" then
 	log("[SoundChannels] previewSfxRUID 미지정 — 미리듣기 생략")
 	return
 end
@@ -182,11 +146,11 @@ end
 
 @ExecSpace("ClientOnly")
 method void PreviewVoice()
-if self.previewVoiceRUID == nil or self.previewVoiceRUID == "" then
+if self.previewVoiceRUID == "" then
 	log("[SoundChannels] previewVoiceRUID 미지정 — 미리듣기 생략")
 	return
 end
-self:PlayVoice(self.previewVoiceRUID, 1)
+self:PlaySfx(self.previewVoiceRUID, 1)
 end
 
 end
