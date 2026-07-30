@@ -65,17 +65,37 @@ self:SetEnableIfValid(self.popupContent, false, "popupContent")
 self:SetEnableIfValid(self.countdownLabel, false, "countdownLabel")
 self:SetEnableIfValid(self.processingOverlay, false, "processingOverlay")
 
-self.pauseBtnHandler = self:ConnectIfSet(self.pauseBtn, ButtonClickEvent, self.OnPauseBtnClick, "pauseBtn")
-self.closeBtnHandler = self:ConnectIfSet(self.closeBtn, ButtonClickEvent, self.OnCloseBtnClick, "closeBtn")
-self.btnCloseHandler = self:ConnectIfSet(self.btnClose, ButtonClickEvent, self.OnCloseBtnClick, "btnClose")
-self.btnHomeHandler = self:ConnectIfSet(self.btnHome, ButtonClickEvent, self.OnHomeClick, "btnHome")
-self.btnRetryHandler = self:ConnectIfSet(self.btnRetry, ButtonClickEvent, self.OnRetryClick, "btnRetry")
+if self.pauseBtn ~= nil then
+	self.pauseBtnHandler = self.pauseBtn.Entity:ConnectEvent(ButtonClickEvent, self.OnPauseBtnClick)
+end
+if self.closeBtn ~= nil then
+	self.closeBtnHandler = self.closeBtn.Entity:ConnectEvent(ButtonClickEvent, self.OnCloseBtnClick)
+end
+if self.btnClose ~= nil then
+	self.btnCloseHandler = self.btnClose.Entity:ConnectEvent(ButtonClickEvent, self.OnCloseBtnClick)
+end
+if self.btnHome ~= nil then
+	self.btnHomeHandler = self.btnHome.Entity:ConnectEvent(ButtonClickEvent, self.OnHomeClick)
+end
+if self.btnRetry ~= nil then
+	self.btnRetryHandler = self.btnRetry.Entity:ConnectEvent(ButtonClickEvent, self.OnRetryClick)
+end
 
-self.sliderBgmHandler = self:ConnectIfSet(self.sliderBgm, SliderValueChangedEvent, self.OnBgmChanged, "sliderBgm")
-self.sliderSfxHandler = self:ConnectIfSet(self.sliderSfx, SliderValueChangedEvent, self.OnSfxChanged, "sliderSfx")
-self.sliderVoiceHandler = self:ConnectIfSet(self.sliderVoice, SliderValueChangedEvent, self.OnVoiceChanged, "sliderVoice")
-self.sliderSfxTouchHandler = self:ConnectIfSet(self.sliderSfxTouch, UITouchEndDragEvent, self.OnSfxReleased, "sliderSfxTouch")
-self.sliderVoiceTouchHandler = self:ConnectIfSet(self.sliderVoiceTouch, UITouchEndDragEvent, self.OnVoiceReleased, "sliderVoiceTouch")
+if self.sliderBgm ~= nil then
+	self.sliderBgmHandler = self.sliderBgm.Entity:ConnectEvent(SliderValueChangedEvent, self.OnBgmChanged)
+end
+if self.sliderSfx ~= nil then
+	self.sliderSfxHandler = self.sliderSfx.Entity:ConnectEvent(SliderValueChangedEvent, self.OnSfxChanged)
+end
+if self.sliderVoice ~= nil then
+	self.sliderVoiceHandler = self.sliderVoice.Entity:ConnectEvent(SliderValueChangedEvent, self.OnVoiceChanged)
+end
+if self.sliderSfxTouch ~= nil then
+	self.sliderSfxTouchHandler = self.sliderSfxTouch.Entity:ConnectEvent(UITouchEndDragEvent, self.OnSfxReleased)
+end
+if self.sliderVoiceTouch ~= nil then
+	self.sliderVoiceTouchHandler = self.sliderVoiceTouch.Entity:ConnectEvent(UITouchEndDragEvent, self.OnVoiceReleased)
+end
 
 self.pauseStateHandler = _PauseManager:ConnectEvent(PauseStateChangedEvent, self.OnPauseStateChanged)
 self.keyDownHandler = _InputService:ConnectEvent(KeyDownEvent, self.OnGlobalKeyDown)
@@ -107,16 +127,6 @@ if isvalid(target) then
 else
 	log("[InGameSettingLogic] " .. slotName .. " 미연결 — 해당 요소 비활성")
 end
-end
-
-@ExecSpace("ClientOnly")
-method any ConnectIfSet(any component, any eventType, any callback, string slotName)
--- 슬롯이 비어 있으면 연결을 건너뛰고 무엇이 빠졌는지 알린다.
-if component == nil then
-	log("[InGameSettingLogic] " .. slotName .. " 미연결 — 해당 기능 비활성")
-	return nil
-end
-return component.Entity:ConnectEvent(eventType, callback)
 end
 
 @ExecSpace("ClientOnly")

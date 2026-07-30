@@ -107,7 +107,11 @@ self._T.slots = {
 self:BuildDisplayNames()
 
 -- 열기 버튼을 가장 먼저 연결한다. 다른 슬롯이 비어 있어도 창은 열리게.
-self.openBtnHandler = self:ConnectIfSet(self.openBtn, ButtonClickEvent, self.OnOpenBtnClick, "openBtn")
+if self.openBtn ~= nil then
+	self.openBtnHandler = self.openBtn.Entity:ConnectEvent(ButtonClickEvent, self.OnOpenBtnClick)
+else
+	log("[SettingsLogic] openBtn 미연결 — _SettingsLogic:Toggle()로 열어야 한다")
+end
 
 for i, slot in ipairs(self._T.slots) do
 	if isvalid(slot.icon) then slot.icon.Enable = false end
@@ -120,13 +124,27 @@ for i, slot in ipairs(self._T.slots) do
 	end
 end
 
-self.sliderBgmHandler = self:ConnectIfSet(self.sliderBgm, SliderValueChangedEvent, self.OnBgmChanged, "sliderBgm")
-self.sliderSfxHandler = self:ConnectIfSet(self.sliderSfx, SliderValueChangedEvent, self.OnSfxChanged, "sliderSfx")
-self.sliderSfxTouchHandler = self:ConnectIfSet(self.sliderSfxTouch, UITouchEndDragEvent, self.OnSfxReleased, "sliderSfxTouch")
-self.btnRevertKeysHandler = self:ConnectIfSet(self.btnRevertKeys, ButtonClickEvent, self.OnRevertKeysClick, "btnRevertKeys")
-self.btnSyncAdjustHandler = self:ConnectIfSet(self.btnSyncAdjust, ButtonClickEvent, self.OnSyncAdjustClick, "btnSyncAdjust")
-self.btnApplyHandler = self:ConnectIfSet(self.btnApply, ButtonClickEvent, self.OnApplyClick, "btnApply")
-self.btnCloseHandler = self:ConnectIfSet(self.btnClose, ButtonClickEvent, self.OnCloseClick, "btnClose")
+if self.sliderBgm ~= nil then
+	self.sliderBgmHandler = self.sliderBgm.Entity:ConnectEvent(SliderValueChangedEvent, self.OnBgmChanged)
+end
+if self.sliderSfx ~= nil then
+	self.sliderSfxHandler = self.sliderSfx.Entity:ConnectEvent(SliderValueChangedEvent, self.OnSfxChanged)
+end
+if self.sliderSfxTouch ~= nil then
+	self.sliderSfxTouchHandler = self.sliderSfxTouch.Entity:ConnectEvent(UITouchEndDragEvent, self.OnSfxReleased)
+end
+if self.btnRevertKeys ~= nil then
+	self.btnRevertKeysHandler = self.btnRevertKeys.Entity:ConnectEvent(ButtonClickEvent, self.OnRevertKeysClick)
+end
+if self.btnSyncAdjust ~= nil then
+	self.btnSyncAdjustHandler = self.btnSyncAdjust.Entity:ConnectEvent(ButtonClickEvent, self.OnSyncAdjustClick)
+end
+if self.btnApply ~= nil then
+	self.btnApplyHandler = self.btnApply.Entity:ConnectEvent(ButtonClickEvent, self.OnApplyClick)
+end
+if self.btnClose ~= nil then
+	self.btnCloseHandler = self.btnClose.Entity:ConnectEvent(ButtonClickEvent, self.OnCloseClick)
+end
 
 self.keyDownHandler = _InputService:ConnectEvent(KeyDownEvent, self.OnGlobalKeyDown)
 self.settingsHandler = _SettingsManager:ConnectEvent(SettingsChangedEvent, self.OnSettingsChanged)
@@ -151,16 +169,6 @@ if self.openBtnHandler then self.openBtn.Entity:DisconnectEvent(ButtonClickEvent
 if self.keyDownHandler then _InputService:DisconnectEvent(KeyDownEvent, self.keyDownHandler) end
 if self.settingsHandler then _SettingsManager:DisconnectEvent(SettingsChangedEvent, self.settingsHandler) end
 if self.noticeTimerId ~= 0 then _TimerService:ClearTimer(self.noticeTimerId) end
-end
-
-@ExecSpace("ClientOnly")
-method any ConnectIfSet(any component, any eventType, any callback, string slotName)
--- 슬롯이 비어 있으면 연결을 건너뛰고 무엇이 빠졌는지 알린다.
-if component == nil then
-	log("[SettingsLogic] " .. slotName .. " 미연결 — 해당 기능 비활성")
-	return nil
-end
-return component.Entity:ConnectEvent(eventType, callback)
 end
 
 @ExecSpace("ClientOnly")
