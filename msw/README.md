@@ -1,159 +1,101 @@
-# 설정 패널 (MSW) — 구현물과 연결 방법
+# 설정 스크립트 (MSW)
 
-양피지 스타일 좌측 설정 패널의 **기능 구현**입니다. 프로젝트의 기존 스크립트(`RhythmGameManager`,
-`PlayerData`, `BattleInput`)와 같은 문법·관례에 맞춰 작성했습니다.
+기존 프로젝트 스택(`SettingsManager` / `SettingsBootstrap` / `PlayerInputBridge` /
+`SettingsChangedEvent` / `PauseManager` / `StageController`)에 맞춰 작성한 파일들입니다.
+Maker 코드 에디터에 그대로 붙여넣는 문법입니다.
 
-레이아웃 참조용 목업: `../mockup/settings-panel.html` (브라우저로 열면 1920×1080 기준으로 렌더됩니다)
-기존 스크립트에 넣을 변경점: `integration.md`
-
-## 두 가지 선택지
-
-같은 화면을 두 방식으로 구현해 두었습니다. **둘 중 하나만 쓰세요.**
-
-**(A) `SettingsLogic.lua` — 권장.** 기존 프로젝트의 `SettingsManager` / `PlayerInputBridge` /
-`SettingsBootstrap` / `SettingsChangedEvent` / `_SoundChannels`를 그대로 쓰고, UI 바인딩만 이 파일로
-교체합니다. 저장(`_DataStorageService`)과 실제 키 반영(`SetActionKey`)이 이미 완성돼 있어 가장 빠릅니다.
-기존 스크립트는 **수정하지 않아도 됩니다.**
-
-**(B) `SettingsPanel.lua` + `SettingsManager.lua` + `SoundManager.lua` — 독립 세트.**
-기존 설정 스택이 없는 프로젝트에 넣을 때 씁니다. 저장은 `PlayerData` 컴포넌트를 거치므로
-`integration.md`의 스니펫이 필요합니다.
+레이아웃 참조용 목업: `../mockup/settings-panel.html`
 
 ## 파일
 
 | 파일 | 종류 | 역할 |
 |---|---|---|
-| `SettingsLogic.lua` | Logic | **(A)** 기존 `SettingsManager` 스택에 맞춘 UI 바인딩 |
-| `SettingsManager.lua` | Logic | **(B)** 저장/임시 상태, JSON 직렬화, 기본값 병합, 키 이름↔코드 변환, 중복 키 복구 |
-| `SoundManager.lua` | Logic | **(B)** BGM·효과음 2채널 볼륨, 0% 완전 무음, 미리듣기, 재생 중 볼륨 변경 |
-| `SettingsPanel.lua` | Component | **(B)** 패널 위젯 바인딩 |
+| `SettingsManager.lua` | Logic | 기존 파일 + **볼륨 조회 2개 추가**(`GetVolume`, `GetVolume01`) |
+| `SoundChannels.lua` | Logic | **신규.** 사운드 볼륨 게이트웨이. 모든 재생이 여기를 거쳐야 설정이 반영됨 |
+| `SettingsLogic.lua` | Logic | 양피지 설정 패널 UI 바인딩 (탭/음성 없음, 키 박스+변경 버튼 분리 구조) |
+| `InGameSettingLogic.lua` | Logic | 인게임 일시정지 팝업 (빈 슬롯 허용, 음성 채널 선택) |
+| `ConfirmDialogController.lua` | Logic | 확인 다이얼로그 (확인창 미제작 시 바로 실행) |
 
-### (A) `SettingsLogic.lua`의 슬롯
-
-`settingsGroup`(패널 전체) / `sliderBgm` · `valueBgm` / `sliderSfx` · `valueSfx` · `sliderSfxTouch` /
-`keyText1~3` · `btnChange1~3` · `waitIcon1~3`(선택) / `btnRevertKeys` /
-`syncValueText` · `btnSyncAdjust` / `btnApply` · `btnClose` / `noticeLabel` · `noticeText`(선택).
-
-`action1~3`은 화면의 세 행이 어떤 액션에 대응하는지 정하는 **문자열 프로퍼티**입니다.
-기본값은 기존 `SettingsManager`의 액션 이름을 그대로 쓴 `MoveLeft` / `MoveRight` / `Jump`이고,
-나중에 `Input1` / `Input2` / `Confirm`으로 바꾸더라도 에디터에서 이 값만 고치면 됩니다.
-열기는 `_SettingsLogic:Toggle()` 또는 `OpenSettings()`입니다.
-
-**Logic 2개는 엔티티에 붙이지 않습니다.** 전역이라 `_SettingsManager`, `_SoundManager`로 접근합니다.
-`RhythmGameManager`와 `BattleInput`이 드래그 연결 없이 설정값을 읽어야 하므로 Logic으로 두었습니다.
-
-**`SettingsPanel`은 Component이므로 엔티티에 붙입니다.** 단 **패널 본체가 아니라 항상 켜져 있는 UI 루트**에
-붙이고, `panelRoot` 슬롯에 그 자식(패널 본체)을 연결하세요. 컴포넌트가 붙은 엔티티가 꺼져 있으면
-`OnBeginPlay`가 돌지 않아 버튼 연결이 되지 않습니다.
-
-## UI 하이어라키와 슬롯 매핑
+## 볼륨이 실제로 반영되는 경로
 
 ```
-SettingsUIRoot                      ★ SettingsPanel 컴포넌트를 여기에 붙임 (항상 Enable)
-└─ SettingsPanel                    ▶ panelRoot            (Entity)
-   ├─ Parchment                     배경 스프라이트 (슬롯 없음)
-   ├─ Title            "설정"
-   ├─ SoundSection
-   │  ├─ SectionLabel  "사운드"
-   │  ├─ Row_Bgm
-   │  │  ├─ Label      "BGM"
-   │  │  ├─ Slider                  ▶ sliderBgm            (SliderComponent)
-   │  │  └─ ValueBox / Text         ▶ valueBgm             (TextGUIRendererComponent)
-   │  └─ Row_Sfx
-   │     ├─ Label      "효과음"
-   │     ├─ Slider                  ▶ sliderSfx            (SliderComponent)
-   │     │                          ▶ sliderSfxTouch       (UITouchReceiveComponent) ※ 같은 엔티티
-   │     └─ ValueBox / Text         ▶ valueSfx             (TextGUIRendererComponent)
-   ├─ KeySection
-   │  ├─ SectionLabel  "키 설정"
-   │  ├─ Row_Input1
-   │  │  ├─ Label      "1번 입력"
-   │  │  ├─ WaitIcon                ▶ waitIcon1            (Entity)
-   │  │  ├─ KeyBox / Text           ▶ keyText1             (TextGUIRendererComponent)
-   │  │  └─ BtnChange  "변경"       ▶ btnChange1           (ButtonComponent)
-   │  ├─ Row_Input2  (동일 구성)    ▶ waitIcon2 / keyText2 / btnChange2
-   │  ├─ Row_Confirm (동일 구성)    ▶ waitIconConfirm / keyTextConfirm / btnChangeConfirm
-   │  ├─ BtnRevert     "되돌리기"   ▶ btnRevertKeys        (ButtonComponent)
-   │  └─ NoticeLabel                ▶ noticeLabel          (Entity)
-   │     └─ Text                    ▶ noticeText           (TextGUIRendererComponent)
-   ├─ SyncSection
-   │  ├─ SectionLabel  "싱크 조절"
-   │  └─ Row_Sync
-   │     ├─ Label      "현재 싱크"
-   │     ├─ ValueBox / Text         ▶ syncValueText        (TextGUIRendererComponent)
-   │     └─ BtnAdjust  "조절하기"   ▶ btnSyncAdjust        (ButtonComponent)
-   └─ Footer
-      ├─ BtnApply      "적용하기"   ▶ btnApply             (ButtonComponent)
-      └─ BtnClose      "닫기"       ▶ btnClose             (ButtonComponent)
+슬라이더 조작
+  → SettingsLogic:OnBgmChanged / OnSfxChanged
+      → _SettingsManager:SetDraftVolume(channel, v)   -- draft 갱신 + "volume" 이벤트
+          → _SoundChannels:OnSettingsChanged           -- 재생 중인 BGM에 즉시 반영
+"적용하기"
+  → _SettingsManager:Apply() → 서버 저장(_DataStorageService) → "applied"
+
+로그인 / 맵 진입
+  → SettingsBootstrap:LoadForCurrentPlayer() → 서버 로드 → "loaded"
+      → draft/saved 갱신 → _SoundChannels가 다시 반영
+
+재생 시점
+  → _SoundChannels:PlaySfx(ruid, 기본볼륨)  =  PlaySound(ruid, 기본볼륨 × sfx/100)
+  → _SoundChannels:PlayBgm(ruid, 기본볼륨)  =  PlaySound(ruid, 기본볼륨 × bgm/100)
 ```
 
-`NoticeLabel`은 원본 화면에 없는 **추가 요소**입니다. 중복 키 거부·저장 완료·키 변경 안내를 보여줄 곳이
-없으면 사용자가 왜 변경이 안 됐는지 알 수 없어 넣었습니다. 필요 없으면 빈 엔티티를 연결하면
-텍스트만 갱신되고 화면에는 나타나지 않습니다.
+볼륨은 `saved`가 아니라 **`draft`를 읽습니다.** 슬라이더를 움직이는 즉시 소리가 바뀌고,
+저장하지 않고 닫으면 `RevertDraftToSaved`가 draft를 되돌리므로 소리도 함께 복구됩니다.
+`PlayerInputBridge`가 키를 draft로 읽는 것과 같은 규칙입니다.
 
-### 반드시 챙겨야 하는 컴포넌트 설정
+## 기존 스크립트에서 바꿔야 하는 곳
 
-- **슬라이더 2개**: `SliderComponent`의 **Min = 0, Max = 100**. 기본값 0~1이면 50이 1로 잘려 항상 100처럼 보입니다.
-- **효과음 슬라이더**: `UITouchReceiveComponent`를 추가해야 손을 놓는 순간 미리듣기가 됩니다.
-- **값 박스·키 박스**: 배경 스프라이트 + 자식 텍스트. 슬롯에는 **텍스트 컴포넌트**를 넣습니다.
-- **`SoundManager`의 `previewSfxRUID`**: 미리듣기용 샘플 사운드를 지정하세요. 비어 있으면 미리듣기를 건너뜁니다.
+`_SoundService:PlaySound`를 직접 호출하는 자리를 전부 `_SoundChannels`로 바꿔야 설정이 먹습니다.
+
+| 스크립트 | 위치 | 변경 |
+|---|---|---|
+| `RhythmGameManager` | `PlayBGM` | `_SoundService:PlaySound(ruid, self.bgmVolume)` → `_SoundChannels:PlayBgm(ruid, self.bgmVolume)` |
+| `RhythmGameManager` | `StopBGM` | `_SoundChannels:StopBgm()` |
+| `BeatTrigger` | `OnHit` | `_SoundService:PlaySound(self.soundRUID, self.volume)` → `_SoundChannels:PlaySfx(...)` |
+| `BattleInput` | `PlayHitSound` | `_SoundService:PlaySound(self.hitSound, self.hitSoundVolume)` → `_SoundChannels:PlaySfx(...)` |
+| `GachaResultPopup` | `PlayRareSound` | `_SoundService:PlaySound(ruid, self.rareEffectSoundVolume)` → `_SoundChannels:PlaySfx(...)` |
+| `GachaResultPopup` | `PlayCardAppearSound` | `cloneSc.Volume = self.cardAppearSoundVolume` → `_SoundChannels:ScaleSfx(self.cardAppearSoundVolume)` |
+| `GachaResultPopup` | `PlayFlipSound` | `cloneSc.Volume = self.flipSoundVolume` → `_SoundChannels:ScaleSfx(self.flipSoundVolume)` |
+| `GameMapManager` | `OnBeginPlay` | `_SettingsManager:LoadForCurrentPlayer()` 한 줄 추가(전투 맵 진입 시 최신값 보장) |
+
+각 스크립트의 볼륨 프로퍼티(`bgmVolume`, `hitSoundVolume` 등)는 지우지 말고 **그 소리의 기본 크기**로
+남겨 두세요. 설정 볼륨은 거기에 곱해집니다.
+
+## 슬롯 연결
+
+`SettingsLogic` — `settingsGroup` / `sliderBgm`·`valueBgm` / `sliderSfx`·`valueSfx`·`sliderSfxTouch` /
+`keyText1~3`·`btnChange1~3`·`waitIcon1~3`(선택) / `btnRevertKeys` /
+`syncValueText`·`btnSyncAdjust` / `btnApply`·`btnClose` / `noticeLabel`·`noticeText`(선택) /
+`openBtn`(로비 설정 버튼) / `hideWhileOpen`(선택).
+
+`action1~3`은 화면 세 행이 대응할 액션 이름입니다. 기본값은 `MoveLeft` / `MoveRight` / `Jump`.
+
+`SoundChannels` — `previewSfxRUID`, `previewVoiceRUID`에 미리듣기 샘플 사운드를 지정하세요.
 
 ## 치수·색상 (1920×1080 기준)
 
 | 요소 | 값 |
 |---|---|
-| 패널 | 좌측 정렬, 폭 795px, 높이 1080px, 패딩 상 44 / 좌 44 / 우 56 |
-| 타이틀 "설정" | 46pt, 자간 2px |
-| 섹션 라벨 | 32pt, 아래 2px 구분선, 섹션 간격 46px |
-| 행 라벨 | 폭 150px, 우측 정렬, 26pt |
-| 슬라이더 트랙 / 핸들 | 470×30 (라운드 15) / 22×22 마름모 |
-| 값 박스 / 키 박스 | 104×46 / 152×46, 테두리 3px |
-| 변경 버튼 / 되돌리기·조절하기 | 96×42 / 118×44 |
-| 하단 버튼 | 258×88, 좌 44 · 하 56, 간격 24 |
+| 패널 | 좌측 정렬, 폭 795px, 패딩 상 44 / 좌 44 / 우 56 |
+| 타이틀 46pt / 섹션 라벨 32pt / 행 라벨 폭 150px 우측 정렬 26pt |
+| 슬라이더 트랙 470×30(라운드 15), 핸들 22×22 마름모 |
+| 값 박스 104×46, 키 박스 152×46 |
+| 변경 버튼 96×42, 되돌리기·조절하기 118×44, 하단 버튼 258×88 |
 
 | 용도 | HEX |
 |---|---|
-| 양피지 (위→아래) | `#F3E6C6` → `#E6D3AC`, 우측 테두리 `#C9AE7C` |
-| 기본 텍스트 / 섹션 라벨 | `#4A3A22` / `#7A6540` |
-| 슬라이더 트랙 | `#8A4038` → `#5E2C29`, 외곽선 `#4A211F` |
-| 슬라이더 핸들 | `#F5CE4A`, 외곽선 `#8A6A14` |
-| 값 박스 | 배경 `#F8F0DA`, 테두리 `#B49468` |
-| 키 박스 / 입력 대기 | `#3E4654` / `#9AA0A8` |
-| 파란 버튼 | `#46A0DC` → `#2F86C2`, 그림자 `#24698F` |
-| 닫기 버튼 | `#BFAE7E` → `#A8976A`, 텍스트 `#4A3A22` |
-| 안내 문구 | `#8A5A2A` |
-
-## 구현된 동작
-
-- **슬라이더**: 0~100 정수 스냅, 값 박스는 숫자만. 드래그 중 볼륨이 즉시 들리고, 효과음은 손을 놓을 때 샘플 1회 재생.
-- **적용하기**: 임시 값을 확정해 JSON으로 저장. 변경이 없으면 "변경된 내용이 없습니다"만 안내.
-- **닫기 / ESC**: 저장하지 않고 닫으면서 **볼륨 미리듣기까지 마지막 저장값으로 롤백**.
-- **변경**: 해당 행이 "입력 대기"로 바뀌고 다음에 누른 키를 할당. 한 번에 한 행만 대기.
-  이미 다른 액션이 쓰는 키는 "이미 사용 중인 키입니다"로 거부, ESC로 취소.
-- **되돌리기**: 키 3개만 기본값(Left / Right / Space)으로. 볼륨·싱크는 유지하고 확정은 적용하기에서.
-- **조절하기**: 임시 동작으로 클릭당 +10ms, +100ms를 넘으면 -100ms로 순환. 보정 화면이 생기면 교체하세요.
-- **저장 형식**: `{"version":1,"volume":{"bgm":50,"sfx":50},"keys":{...},"syncOffsetMs":0}`.
-  기본값에서 시작해 저장된 항목만 덮어쓰므로, 나중에 항목이 추가돼도 예전 저장값이 안전하게 병합됩니다.
-  모르는 키 이름이나 중복 키가 들어 있으면 해당 항목만 기본값으로 복구합니다.
-- **게임플레이 조회**: `_SettingsManager:GetKeyCode("Input1")`, `GetSyncOffsetMs()`,
-  `GetBgmVolume01()`, `GetSfxVolume01()`.
+| 양피지 | `#F3E6C6` → `#E6D3AC`, 테두리 `#C9AE7C` |
+| 텍스트 / 섹션 라벨 | `#4A3A22` / `#7A6540` |
+| 슬라이더 트랙 / 핸들 | `#8A4038`→`#5E2C29` / `#F5CE4A` |
+| 값 박스 / 키 박스 / 입력 대기 | `#F8F0DA` / `#3E4654` / `#9AA0A8` |
+| 파란 버튼 / 닫기 버튼 | `#46A0DC`→`#2F86C2` / `#BFAE7E` |
 
 ## 확인 순서
 
-1. 실행 후 로그에 `[SettingsPanel] OnBeginPlay wired`와 `[SettingsManager] 로드 완료: ...`가 찍히는지.
-   앞의 것이 없으면 슬롯이 비어 있고, 뒤의 것이 없으면 Logic이 프로젝트에 안 올라간 상태입니다.
-2. `KeyboardKey.XXX not found -- skipped` 로그가 있으면 그 키 이름만 `BuildKeyTables`에서 고치세요.
-3. `SettingsPanel:Open()`으로 패널이 열리고 50/50, ←/→/Space로 채워지는지.
-4. 슬라이더를 끝까지 끌어 값이 0~100으로 움직이는지(1로 잘리면 Slider Min/Max 문제).
-5. 1번 입력에 2번 입력이 쓰는 키를 넣어보고 거부되는지.
-6. 값을 바꾸고 닫기 → 다시 열면 이전 값으로 돌아와 있는지. 적용하기 → 로그에 `저장: {...}`이 찍히는지.
-7. `integration.md`의 1번을 적용한 뒤, 게임을 다시 켜도 값이 유지되는지.
+1. 설정에서 BGM을 0으로 내리고 적용 → 로비 BGM이 무음인지.
+2. 전투 진입 → 전투 BGM도 무음인지(전투 맵에서 새로 재생되는 경로).
+3. 효과음을 0으로 → 비트 쿵 소리, 커맨드 성공음, 가챠 사운드가 모두 멈추는지.
+4. 게임을 껐다 켜서 값이 유지되는지(`_DataStorageService` 저장 확인).
+5. 슬라이더를 움직이는 동안 실시간으로 변하고, 저장 없이 닫으면 원래 볼륨으로 돌아오는지.
 
 ## 검증하지 못한 것
 
-이 환경에서는 MSW를 실행할 수 없어 **문법·논리만 프로젝트 관례에 맞춰 작성했고 런타임 검증은 하지 못했습니다.**
-특히 아래 세 가지는 Maker에서 한 번 확인해주세요.
-
-- `KeyboardKey` 열거형 멤버 이름(`LeftArrow` 등) — 틀리면 해당 키만 건너뛰고 로그를 남기게 방어해 두었습니다.
-- `_HttpService:JSONEncode` — `JSONDecode`는 기존 코드에서 확인됐고, Encode는 `pcall`로 감싸 실패 시 저장만 건너뜁니다.
-- 재생 중 BGM 핸들의 볼륨 변경 — 불가하면 로그를 남기고 다음 재생부터 적용됩니다.
+MSW를 실행할 수 없어 문법과 논리만 맞췄습니다. 특히 **재생 중 BGM 핸들의 볼륨 변경**
+(`handle.Volume`)은 지원 여부가 불확실해 `pcall`로 감쌌고, 실패하면 로그를 남기고
+다음 재생부터 적용됩니다. 즉시 반영이 안 되면 BGM을 한 번 껐다 켜는 방식으로 바꾸면 됩니다.
