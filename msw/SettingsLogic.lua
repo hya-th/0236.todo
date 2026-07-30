@@ -19,6 +19,12 @@ script SettingsLogic extends Logic
 
 property Entity settingsGroup = "nil -- 패널 전체. 드래그 연결"
 
+-- 로비/메인 화면에서 이 패널을 여는 버튼. 연결하면 별도 스크립트 없이 동작한다.
+property ButtonComponent openBtn = "nil -- (선택) 로비의 설정 버튼"
+-- 패널이 열린 동안 숨길 화면(로비 UI 그룹 등). 비워두면 로비 위에 겹쳐서 열린다.
+-- 주의: settingsGroup의 부모를 넣으면 패널까지 같이 사라진다.
+property Entity hideWhileOpen = "nil -- (선택) 패널이 열린 동안 숨길 그룹"
+
 -- 사운드
 property SliderComponent sliderBgm = "nil -- BGM 슬라이더. Min=0 Max=100"
 property TextGUIRendererComponent valueBgm = "nil -- BGM 값 박스의 텍스트"
@@ -78,6 +84,7 @@ property any btnRevertKeysHandler = nil
 property any btnSyncAdjustHandler = nil
 property any btnApplyHandler = nil
 property any btnCloseHandler = nil
+property any openBtnHandler = nil
 property any keyDownHandler = nil
 property any settingsHandler = nil
 
@@ -108,6 +115,12 @@ self.btnSyncAdjustHandler = self.btnSyncAdjust.Entity:ConnectEvent(ButtonClickEv
 self.btnApplyHandler = self.btnApply.Entity:ConnectEvent(ButtonClickEvent, self.OnApplyClick)
 self.btnCloseHandler = self.btnClose.Entity:ConnectEvent(ButtonClickEvent, self.OnCloseClick)
 
+if self.openBtn ~= nil then
+	self.openBtnHandler = self.openBtn.Entity:ConnectEvent(ButtonClickEvent, self.OnOpenBtnClick)
+else
+	log("[SettingsLogic] openBtn 미연결 — 다른 스크립트에서 _SettingsLogic:Toggle()로 열어야 한다")
+end
+
 self.keyDownHandler = _InputService:ConnectEvent(KeyDownEvent, self.OnGlobalKeyDown)
 self.settingsHandler = _SettingsManager:ConnectEvent(SettingsChangedEvent, self.OnSettingsChanged)
 
@@ -127,6 +140,7 @@ if self.btnRevertKeysHandler then self.btnRevertKeys.Entity:DisconnectEvent(Butt
 if self.btnSyncAdjustHandler then self.btnSyncAdjust.Entity:DisconnectEvent(ButtonClickEvent, self.btnSyncAdjustHandler) end
 if self.btnApplyHandler then self.btnApply.Entity:DisconnectEvent(ButtonClickEvent, self.btnApplyHandler) end
 if self.btnCloseHandler then self.btnClose.Entity:DisconnectEvent(ButtonClickEvent, self.btnCloseHandler) end
+if self.openBtnHandler then self.openBtn.Entity:DisconnectEvent(ButtonClickEvent, self.openBtnHandler) end
 if self.keyDownHandler then _InputService:DisconnectEvent(KeyDownEvent, self.keyDownHandler) end
 if self.settingsHandler then _SettingsManager:DisconnectEvent(SettingsChangedEvent, self.settingsHandler) end
 if self.noticeTimerId ~= 0 then _TimerService:ClearTimer(self.noticeTimerId) end
@@ -165,6 +179,12 @@ return nil
 end
 
 @ExecSpace("ClientOnly")
+method void OnOpenBtnClick()
+-- 로비의 설정 버튼. 한 번 더 누르면 닫힌다.
+self:Toggle()
+end
+
+@ExecSpace("ClientOnly")
 method void Toggle()
 if self.isOpen then
 	self:OnCloseClick()
@@ -179,6 +199,9 @@ if self.isOpen then return end
 self.isOpen = true
 self.waitingAction = ""
 self.settingsGroup.Enable = true
+if isvalid(self.hideWhileOpen) then
+	self.hideWhileOpen.Enable = false
+end
 self:RefreshFromDraft()
 -- PlayerInputBridge가 이 알림을 받아 캐릭터 입력을 막는다.
 _SettingsManager:NotifyUIOpened()
@@ -188,6 +211,9 @@ end
 @ExecSpace("ClientOnly")
 method void CloseImmediate()
 self.settingsGroup.Enable = false
+if isvalid(self.hideWhileOpen) then
+	self.hideWhileOpen.Enable = true
+end
 self.isOpen = false
 self.waitingAction = ""
 self:HideNotice()
