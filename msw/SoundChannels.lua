@@ -40,8 +40,8 @@ end
 
 @ExecSpace("ClientOnly")
 method void OnSettingsChanged(SettingsChangedEvent event)
-if event.kind == "volume" or event.kind == "loaded" or event.kind == "applied"
-	or event.kind == "restored" or event.kind == "reverted" then
+local k = event.kind
+if k == "volume" or k == "loaded" or k == "applied" or k == "restored" or k == "reverted" then
 	self:PushBgmVolume()
 end
 end
