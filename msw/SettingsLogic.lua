@@ -90,7 +90,13 @@ property any settingsHandler = nil
 
 @ExecSpace("ClientOnly")
 method void OnBeginPlay()
-self.settingsGroup.Enable = false
+-- 슬롯을 아직 다 연결하지 않아도 멈추지 않는다. 비어 있는 슬롯은 건너뛰고
+-- 무엇이 빠졌는지 로그로 알려주므로 UI를 만들어가며 단계적으로 확인할 수 있다.
+if isvalid(self.settingsGroup) then
+	self.settingsGroup.Enable = false
+else
+	log("[SettingsLogic] settingsGroup 미연결 — 패널을 열 수 없다")
+end
 
 self._T.slots = {
 	{ action = self.action1, btn = self.btnChange1, text = self.keyText1, icon = self.waitIcon1 },
@@ -100,26 +106,27 @@ self._T.slots = {
 
 self:BuildDisplayNames()
 
-for _, slot in ipairs(self._T.slots) do
+-- 열기 버튼을 가장 먼저 연결한다. 다른 슬롯이 비어 있어도 창은 열리게.
+self.openBtnHandler = self:ConnectIfSet(self.openBtn, ButtonClickEvent, self.OnOpenBtnClick, "openBtn")
+
+for i, slot in ipairs(self._T.slots) do
 	if isvalid(slot.icon) then slot.icon.Enable = false end
-	slot.clickHandler = slot.btn.Entity:ConnectEvent(ButtonClickEvent, function()
-		self:OnKeyButtonClick(slot)
-	end)
+	if slot.btn ~= nil then
+		slot.clickHandler = slot.btn.Entity:ConnectEvent(ButtonClickEvent, function()
+			self:OnKeyButtonClick(slot)
+		end)
+	else
+		log("[SettingsLogic] btnChange" .. tostring(i) .. " 미연결 — 그 행의 키 변경 비활성")
+	end
 end
 
-self.sliderBgmHandler = self.sliderBgm.Entity:ConnectEvent(SliderValueChangedEvent, self.OnBgmChanged)
-self.sliderSfxHandler = self.sliderSfx.Entity:ConnectEvent(SliderValueChangedEvent, self.OnSfxChanged)
-self.sliderSfxTouchHandler = self.sliderSfxTouch.Entity:ConnectEvent(UITouchEndDragEvent, self.OnSfxReleased)
-self.btnRevertKeysHandler = self.btnRevertKeys.Entity:ConnectEvent(ButtonClickEvent, self.OnRevertKeysClick)
-self.btnSyncAdjustHandler = self.btnSyncAdjust.Entity:ConnectEvent(ButtonClickEvent, self.OnSyncAdjustClick)
-self.btnApplyHandler = self.btnApply.Entity:ConnectEvent(ButtonClickEvent, self.OnApplyClick)
-self.btnCloseHandler = self.btnClose.Entity:ConnectEvent(ButtonClickEvent, self.OnCloseClick)
-
-if self.openBtn ~= nil then
-	self.openBtnHandler = self.openBtn.Entity:ConnectEvent(ButtonClickEvent, self.OnOpenBtnClick)
-else
-	log("[SettingsLogic] openBtn 미연결 — 다른 스크립트에서 _SettingsLogic:Toggle()로 열어야 한다")
-end
+self.sliderBgmHandler = self:ConnectIfSet(self.sliderBgm, SliderValueChangedEvent, self.OnBgmChanged, "sliderBgm")
+self.sliderSfxHandler = self:ConnectIfSet(self.sliderSfx, SliderValueChangedEvent, self.OnSfxChanged, "sliderSfx")
+self.sliderSfxTouchHandler = self:ConnectIfSet(self.sliderSfxTouch, UITouchEndDragEvent, self.OnSfxReleased, "sliderSfxTouch")
+self.btnRevertKeysHandler = self:ConnectIfSet(self.btnRevertKeys, ButtonClickEvent, self.OnRevertKeysClick, "btnRevertKeys")
+self.btnSyncAdjustHandler = self:ConnectIfSet(self.btnSyncAdjust, ButtonClickEvent, self.OnSyncAdjustClick, "btnSyncAdjust")
+self.btnApplyHandler = self:ConnectIfSet(self.btnApply, ButtonClickEvent, self.OnApplyClick, "btnApply")
+self.btnCloseHandler = self:ConnectIfSet(self.btnClose, ButtonClickEvent, self.OnCloseClick, "btnClose")
 
 self.keyDownHandler = _InputService:ConnectEvent(KeyDownEvent, self.OnGlobalKeyDown)
 self.settingsHandler = _SettingsManager:ConnectEvent(SettingsChangedEvent, self.OnSettingsChanged)
@@ -144,6 +151,16 @@ if self.openBtnHandler then self.openBtn.Entity:DisconnectEvent(ButtonClickEvent
 if self.keyDownHandler then _InputService:DisconnectEvent(KeyDownEvent, self.keyDownHandler) end
 if self.settingsHandler then _SettingsManager:DisconnectEvent(SettingsChangedEvent, self.settingsHandler) end
 if self.noticeTimerId ~= 0 then _TimerService:ClearTimer(self.noticeTimerId) end
+end
+
+@ExecSpace("ClientOnly")
+method any ConnectIfSet(any component, any eventType, any callback, string slotName)
+-- 슬롯이 비어 있으면 연결을 건너뛰고 무엇이 빠졌는지 알린다.
+if component == nil then
+	log("[SettingsLogic] " .. slotName .. " 미연결 — 해당 기능 비활성")
+	return nil
+end
+return component.Entity:ConnectEvent(eventType, callback)
 end
 
 @ExecSpace("ClientOnly")
@@ -196,6 +213,10 @@ end
 @ExecSpace("ClientOnly")
 method void OpenSettings()
 if self.isOpen then return end
+if isvalid(self.settingsGroup) == false then
+	log("[SettingsLogic] settingsGroup 미연결 — 열 수 없다")
+	return
+end
 self.isOpen = true
 self.waitingAction = ""
 self.settingsGroup.Enable = true
@@ -210,7 +231,9 @@ end
 
 @ExecSpace("ClientOnly")
 method void CloseImmediate()
-self.settingsGroup.Enable = false
+if isvalid(self.settingsGroup) then
+	self.settingsGroup.Enable = false
+end
 if isvalid(self.hideWhileOpen) then
 	self.hideWhileOpen.Enable = true
 end
@@ -224,10 +247,10 @@ end
 @ExecSpace("ClientOnly")
 method void RefreshFromDraft()
 local draft = _SettingsManager:GetDraft()
-self.sliderBgm.Value = draft.volume.bgm
-self.valueBgm.Text = tostring(draft.volume.bgm)
-self.sliderSfx.Value = draft.volume.sfx
-self.valueSfx.Text = tostring(draft.volume.sfx)
+if self.sliderBgm ~= nil then self.sliderBgm.Value = draft.volume.bgm end
+if self.valueBgm ~= nil then self.valueBgm.Text = tostring(draft.volume.bgm) end
+if self.sliderSfx ~= nil then self.sliderSfx.Value = draft.volume.sfx end
+if self.valueSfx ~= nil then self.valueSfx.Text = tostring(draft.volume.sfx) end
 
 for _, slot in ipairs(self._T.slots) do
 	if slot.text ~= nil then
@@ -236,7 +259,9 @@ for _, slot in ipairs(self._T.slots) do
 	if isvalid(slot.icon) then slot.icon.Enable = false end
 end
 
-self.syncValueText.Text = self:FormatSync(self:GetSyncOffsetMs())
+if self.syncValueText ~= nil then
+	self.syncValueText.Text = self:FormatSync(self:GetSyncOffsetMs())
+end
 end
 
 @ExecSpace("ClientOnly")
@@ -323,7 +348,7 @@ if _SettingsManager:FindActionUsingKey(newName, action) ~= "" then
 end
 
 local slot = self:SlotByAction(action)
-if isvalid(slot.icon) then
+if slot ~= nil and isvalid(slot.icon) then
 	slot.icon.Enable = false
 end
 self.waitingAction = ""
@@ -393,7 +418,9 @@ if nextValue > self.syncMaxMs then
 	nextValue = self.syncMinMs
 end
 self:SetSyncOffsetMs(nextValue)
-self.syncValueText.Text = self:FormatSync(self:GetSyncOffsetMs())
+if self.syncValueText ~= nil then
+	self.syncValueText.Text = self:FormatSync(self:GetSyncOffsetMs())
+end
 end
 
 @ExecSpace("ClientOnly")
@@ -424,9 +451,9 @@ end
 method void OnSettingsChanged(SettingsChangedEvent event)
 if event.kind == "volume" then
 	local draft = _SettingsManager:GetDraft()
-	if event.name == "bgm" then
+	if event.name == "bgm" and self.valueBgm ~= nil then
 		self.valueBgm.Text = tostring(draft.volume.bgm)
-	elseif event.name == "sfx" then
+	elseif event.name == "sfx" and self.valueSfx ~= nil then
 		self.valueSfx.Text = tostring(draft.volume.sfx)
 	end
 	-- voice는 이 화면에 없으므로 무시(저장값은 그대로 유지된다)
