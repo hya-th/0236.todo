@@ -6,13 +6,38 @@
 레이아웃 참조용 목업: `../mockup/settings-panel.html` (브라우저로 열면 1920×1080 기준으로 렌더됩니다)
 기존 스크립트에 넣을 변경점: `integration.md`
 
+## 두 가지 선택지
+
+같은 화면을 두 방식으로 구현해 두었습니다. **둘 중 하나만 쓰세요.**
+
+**(A) `SettingsLogic.lua` — 권장.** 기존 프로젝트의 `SettingsManager` / `PlayerInputBridge` /
+`SettingsBootstrap` / `SettingsChangedEvent` / `_SoundChannels`를 그대로 쓰고, UI 바인딩만 이 파일로
+교체합니다. 저장(`_DataStorageService`)과 실제 키 반영(`SetActionKey`)이 이미 완성돼 있어 가장 빠릅니다.
+기존 스크립트는 **수정하지 않아도 됩니다.**
+
+**(B) `SettingsPanel.lua` + `SettingsManager.lua` + `SoundManager.lua` — 독립 세트.**
+기존 설정 스택이 없는 프로젝트에 넣을 때 씁니다. 저장은 `PlayerData` 컴포넌트를 거치므로
+`integration.md`의 스니펫이 필요합니다.
+
 ## 파일
 
 | 파일 | 종류 | 역할 |
 |---|---|---|
-| `SettingsManager.lua` | Logic | 저장/임시 상태, JSON 직렬화, 기본값 병합, 키 이름↔코드 변환, 중복 키 복구 |
-| `SoundManager.lua` | Logic | BGM·효과음 2채널 볼륨, 0% 완전 무음, 미리듣기, 재생 중 볼륨 변경 |
-| `SettingsPanel.lua` | Component | 패널 위젯 바인딩, 키 재설정 대기 상태, 되돌리기, 싱크 조절, 적용하기/닫기 |
+| `SettingsLogic.lua` | Logic | **(A)** 기존 `SettingsManager` 스택에 맞춘 UI 바인딩 |
+| `SettingsManager.lua` | Logic | **(B)** 저장/임시 상태, JSON 직렬화, 기본값 병합, 키 이름↔코드 변환, 중복 키 복구 |
+| `SoundManager.lua` | Logic | **(B)** BGM·효과음 2채널 볼륨, 0% 완전 무음, 미리듣기, 재생 중 볼륨 변경 |
+| `SettingsPanel.lua` | Component | **(B)** 패널 위젯 바인딩 |
+
+### (A) `SettingsLogic.lua`의 슬롯
+
+`settingsGroup`(패널 전체) / `sliderBgm` · `valueBgm` / `sliderSfx` · `valueSfx` · `sliderSfxTouch` /
+`keyText1~3` · `btnChange1~3` · `waitIcon1~3`(선택) / `btnRevertKeys` /
+`syncValueText` · `btnSyncAdjust` / `btnApply` · `btnClose` / `noticeLabel` · `noticeText`(선택).
+
+`action1~3`은 화면의 세 행이 어떤 액션에 대응하는지 정하는 **문자열 프로퍼티**입니다.
+기본값은 기존 `SettingsManager`의 액션 이름을 그대로 쓴 `MoveLeft` / `MoveRight` / `Jump`이고,
+나중에 `Input1` / `Input2` / `Confirm`으로 바꾸더라도 에디터에서 이 값만 고치면 됩니다.
+열기는 `_SettingsLogic:Toggle()` 또는 `OpenSettings()`입니다.
 
 **Logic 2개는 엔티티에 붙이지 않습니다.** 전역이라 `_SettingsManager`, `_SoundManager`로 접근합니다.
 `RhythmGameManager`와 `BattleInput`이 드래그 연결 없이 설정값을 읽어야 하므로 Logic으로 두었습니다.
