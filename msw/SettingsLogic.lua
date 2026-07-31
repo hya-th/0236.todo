@@ -57,9 +57,12 @@ property TextGUIRendererComponent noticeText = "nil -- (선택) 안내 문구 �
 -- 화면의 세 행이 어떤 액션에 대응하는지. SettingsManager의 actionNames에
 -- 있는 이름을 써야 한다. 나중에 액션 이름을 Input1/Input2/Confirm 등으로
 -- 바꾸면 코드 대신 여기 값만 고치면 된다.
-property string action1 = "MoveLeft" -- 1번 입력
-property string action2 = "MoveRight" -- 2번 입력
-property string action3 = "Jump" -- 확인
+-- 화면의 세 행이 대응하는 액션 이름. SettingsManager의 actionNames에 있어야 한다.
+-- 이 값을 바꾸면 에디터의 프로퍼티 패널에서도 같이 바꿔야 반영된다
+-- (프로퍼티 값은 프로젝트에 저장되어 파일 기본값을 덮어쓴다).
+property string action1 = "BeatLeft" -- 1번 입력
+property string action2 = "BeatRight" -- 2번 입력
+property string action3 = "BeatConfirm" -- 확인
 
 property string waitingLabel = "입력 대기" -- 대기 중 키 박스에 표시할 문구
 property number noticeDurationSeconds = 1.6 -- 안내 문구 표시 시간

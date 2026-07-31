@@ -22,3 +22,13 @@ method number GetVolume01(string channel)
 -- 0~100 정수를 실제 재생 볼륨 0.0~1.0으로. 0이면 완전 무음.
 return self:GetVolume(channel) / 100
 end
+
+@ExecSpace("ClientOnly")
+method string GetKeyName(string action)
+-- 게임플레이 코드가 쓰는 키 조회. 하드코딩된 KeyboardKey 비교 대신 이걸 쓴다.
+-- 예) BattleInput에서 _SettingsManager:GetKeyName("BeatLeft")
+if self._T == nil or self._T.draft == nil then return "" end
+local v = self._T.draft.keys[action]
+if v == nil then return "" end
+return v
+end
