@@ -813,8 +813,14 @@ end
 
 @ExecSpace("ClientOnly")
 method void OnBeginPlay()
--- [추가] 정지/재개 알림 구독
-self.pauseHandler = _PauseManager:ConnectEvent(PauseStateChangedEvent, self.OnBattlePauseChanged)
+-- [추가] 정지/재개 알림 구독.
+-- 구독에 실패해도 전투 시작(아래 StartBattle)까지 막으면 안 되므로 pcall로 감싼다.
+local okPause = pcall(function()
+	self.pauseHandler = _PauseManager:ConnectEvent(PauseStateChangedEvent, self.OnBattlePauseChanged)
+end)
+if okPause == false then
+	log("[RhythmGameManager] 일시정지 구독 실패 — 전투는 그대로 시작한다")
+end
 
 -- Game 인스턴스 맵 진입 시 자동 전투 시작.
 -- 1) 서버에 전투 데이터 로드 요청(공유메모리 → Sync 프로퍼티)
