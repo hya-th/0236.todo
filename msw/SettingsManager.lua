@@ -14,6 +14,19 @@ property integer CURRENT_VERSION = 1
 property boolean isLoaded = false
 
 method void OnBeginPlay()
+self:InitStatic()
+end
+
+method void EnsureInit()
+-- OnBeginPlay가 이 실행 공간에서 돌지 않았을 수도 있다(ExecSpace 해석 차이).
+-- _T의 정적 표가 비어 있으면 그 자리에서 만든다.
+if self._T.actionNames ~= nil then
+	return
+end
+self:InitStatic()
+end
+
+method void InitStatic()
 -- No @ExecSpace on purpose: this static data must exist on BOTH the
 -- server instance (RequestLoad/RequestSave) and every client instance
 -- (UI, PlayerInputBridge) -- ClientOnly here would leave the server's
@@ -63,15 +76,22 @@ self._T.defaults = {
 	},
 }
 
-self._T.saved = self:CloneSettings(self._T.defaults)
-self._T.draft = self:CloneSettings(self._T.defaults)
+-- 이미 로드된 값이 있으면 덮어쓰지 않는다.
+if self._T.saved == nil then
+	self._T.saved = self:CloneSettings(self._T.defaults)
+end
+if self._T.draft == nil then
+	self._T.draft = self:CloneSettings(self._T.defaults)
+end
 end
 
 method table GetDraft()
+self:EnsureInit()
 return self._T.draft
 end
 
 method table GetSaved()
+self:EnsureInit()
 return self._T.saved
 end
 
@@ -82,6 +102,7 @@ end
 -- ================================================================
 @ExecSpace("ClientOnly")
 method integer GetVolume(string channel)
+self:EnsureInit()
 if self._T == nil or self._T.draft == nil then return 100 end
 local v = self._T.draft.volume[channel]
 if v == nil then return 100 end
@@ -96,6 +117,7 @@ end
 
 @ExecSpace("ClientOnly")
 method string GetKeyName(string action)
+self:EnsureInit()
 -- 게임플레이 코드가 쓰는 키 조회. 하드코딩된 KeyboardKey 비교 대신 이걸 쓴다.
 -- 예) BattleInput에서 _SettingsManager:GetKeyName("BeatLeft")
 if self._T == nil or self._T.draft == nil then return "" end
@@ -105,15 +127,18 @@ return v
 end
 
 method table GetActionNames()
+self:EnsureInit()
 return self._T.actionNames
 end
 
 method boolean IsKeyAllowed(string keyName)
+self:EnsureInit()
 if self._T.keyCodeByName[keyName] == nil then return false end
 return self._T.forbiddenKeyNames[keyName] ~= true
 end
 
 method string FindActionUsingKey(string keyName, string excludingAction)
+self:EnsureInit()
 for _, action in ipairs(self._T.actionNames) do
 	if action ~= excludingAction and self._T.draft.keys[action] == keyName then
 		return action
@@ -123,6 +148,7 @@ return ""
 end
 
 method boolean HasUnsavedChanges()
+self:EnsureInit()
 local a, b = self._T.draft, self._T.saved
 if a.volume.bgm ~= b.volume.bgm or a.volume.sfx ~= b.volume.sfx or a.volume.voice ~= b.volume.voice then
 	return true
@@ -134,6 +160,7 @@ return false
 end
 
 method string KeyNameFromCode(any code)
+self:EnsureInit()
 return self._T.keyNameByCode[code] or tostring(code)
 end
 
@@ -143,6 +170,7 @@ end
 
 @ExecSpace("ClientOnly")
 method void SetDraftVolume(string channel, integer value)
+self:EnsureInit()
 -- Clamp to 0-100 integers; 0 must mean fully silent (handled by the
 -- caller applying value/100 == 0.0 to SetBGMVolume/PlaySound).
 local clamped = math.max(0, math.min(100, value))
@@ -152,18 +180,21 @@ end
 
 @ExecSpace("ClientOnly")
 method void SetDraftKey(string action, string keyName)
+self:EnsureInit()
 self._T.draft.keys[action] = keyName
 self:Emit("keys", action, "")
 end
 
 @ExecSpace("ClientOnly")
 method void RestoreDraftDefaults()
+self:EnsureInit()
 self._T.draft = self:CloneSettings(self._T.defaults)
 self:Emit("restored", "", "")
 end
 
 @ExecSpace("ClientOnly")
 method void RevertDraftToSaved()
+self:EnsureInit()
 self._T.draft = self:CloneSettings(self._T.saved)
 self:Emit("reverted", "", "")
 end
@@ -269,6 +300,7 @@ return {
 end
 
 method table MergeWithDefaults(table loaded)
+self:EnsureInit()
 local merged = self:CloneSettings(self._T.defaults)
 if type(loaded) ~= "table" then
 	return merged
