@@ -20,6 +20,7 @@ property number bgmBaseVolume = 1
 property boolean bgmPlaying = false
 property table bgmHandle = {}
 property any settingsHandler = nil
+property boolean paused = false -- 일시정지 중이면 모든 소리를 막는다
 
 @ExecSpace("ClientOnly")
 method void OnBeginPlay()
@@ -61,6 +62,27 @@ return _SettingsManager:GetVolume01("sfx")
 end
 
 @ExecSpace("ClientOnly")
+method void SetPaused(boolean on)
+-- PauseManager가 정지/재개할 때 호출한다. 정지 중에는 BGM을 끄고
+-- 새로 들어오는 효과음도 전부 막는다.
+if self.paused == on then return end
+self.paused = on
+
+if on then
+	-- 어떤 곡을 틀고 있었는지는 남겨 두고 소리만 끈다
+	self:StopBgmSound()
+	log("[SoundChannels] 사운드 정지")
+	return
+end
+
+-- 재개. 단, 전투 BGM은 RhythmGameManager가 비트와 함께 처음부터 다시 튼다.
+-- (음악만 먼저 살리면 비트와 어긋난다.) 전투가 StopBgm으로 소유권을 놓은
+-- 상태면 bgmPlaying이 false이므로 여기서는 아무것도 하지 않는다.
+self:RestartBgm()
+log("[SoundChannels] 사운드 재개")
+end
+
+@ExecSpace("ClientOnly")
 method number ScaleSfx(number baseVolume)
 -- SoundComponent.Volume에 직접 넣을 값(원래 볼륨 x 설정 비율).
 return baseVolume * self:GetSfxVolume01()
@@ -69,6 +91,7 @@ end
 @ExecSpace("ClientOnly")
 method void PlaySfx(string ruid, number baseVolume)
 -- 기존 _SoundService:PlaySound(ruid, vol) 자리를 이걸로 바꾼다.
+if self.paused then return end
 if ruid == nil then return end
 if ruid == "" then return end
 
@@ -99,6 +122,8 @@ end
 @ExecSpace("ClientOnly")
 method void PlayBgmNow()
 self:StopBgmSound()
+-- 정지 중에 누가 BGM을 틀려 해도 소리는 내지 않는다(곡 정보는 위에서 이미 기억됨).
+if self.paused then return end
 
 local v = self.bgmBaseVolume * self:GetBgmVolume01()
 if v <= 0 then
