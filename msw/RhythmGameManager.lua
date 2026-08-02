@@ -12,8 +12,8 @@ script RhythmGameManager extends Component
 -- ================================================================
 
 property string stageId = "Stage_1-1"
-property Entity character = "nil -- 플레이어 캐릭터(비우면 LocalPlayer)"
-property Entity enemyEntity = "nil -- 미리 배치한 몬스터 표시 엔티티(SpriteRenderer). 드래그 연결"
+property Entity character = nil -- 플레이어 캐릭터(비우면 LocalPlayer)
+property Entity enemyEntity = nil -- 미리 배치한 몬스터 표시 엔티티(SpriteRenderer). 드래그 연결
 property number enemyMaxHP = 100
 property number enemyHP = 100
 property number playerMaxHP = 100
@@ -40,8 +40,8 @@ property number bgmVolume = 1
 property number cameraZoom = 150
 property number cameraOffsetX = 1.11
 property number cameraOffsetY = 0.43
-property Entity gameUI = "nil -- GameUI 컴포넌트가 붙은 엔티티. 드래그 연결"
-property Entity runner = "nil -- BeatRunner(도는 네모). 드래그 연결"
+property Entity gameUI = nil -- GameUI 컴포넌트가 붙은 엔티티. 드래그 연결
+property Entity runner = nil -- BeatRunner(도는 네모). 드래그 연결
 property boolean hasStarted = false
 
 -- [추가] 일시정지 연동
@@ -50,11 +50,11 @@ property boolean stopBgmWhilePaused = true -- 정지 시 BGM을 끄고, 재개 �
 property boolean escExitsBattle = false -- ESC로 전투를 즉시 끝낼지(설정 팝업과 겹치므로 기본 끔)
 property any pauseHandler = nil
 
-property Entity gameUIGroupEntity = "nil -- 전투 UI 그룹"
-property Entity rythemSoloGroupEntity = "nil -- 리듬 UI 그룹"
-property Entity mainScreenEntity = "nil -- 전투 종료 시 복귀할 메인 화면"
-property Entity skillSlotUI = "nil -- SkillSlotUI가 붙은 엔티티. 전투 시작 시 보유 스킬 배치"
-property Entity battleInput = "nil -- BattleInput이 붙은 엔티티. 전투 종료 시 마크 정리"
+property Entity gameUIGroupEntity = nil -- 전투 UI 그룹
+property Entity rythemSoloGroupEntity = nil -- 리듬 UI 그룹
+property Entity mainScreenEntity = nil -- 전투 종료 시 복귀할 메인 화면
+property Entity skillSlotUI = nil -- SkillSlotUI가 붙은 엔티티. 전투 시작 시 보유 스킬 배치
+property Entity battleInput = nil -- BattleInput이 붙은 엔티티. 전투 종료 시 마크 정리
 property table selectedSkills = {}
 property number buffAttackTime = 0
 property number buffAttackAmount = 0
@@ -975,7 +975,7 @@ end
 log("[RhythmGameManager] 전투 종료 → 메인 화면 복귀")
 end
 
-@ExecSpace("Client")
+@ExecSpace("ClientOnly")
 @EventSender("Service", "InputService")
 handler HandleKeyDownEvent(KeyDownEvent event)
 -- ESC는 이제 설정 팝업(InGameSettingLogic)이 열고 닫는다.

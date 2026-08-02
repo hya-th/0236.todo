@@ -693,7 +693,7 @@ if key == nil then return fallback end
 return key
 end
 
-@ExecSpace("Client")
+@ExecSpace("ClientOnly")
 @EventSender("Service", "InputService")
 handler HandleKeyDownEvent(KeyDownEvent event)
 -- [변경] 설정에서 지정한 키로 판정한다(원본은 화살표 하드코딩).
