@@ -336,6 +336,22 @@ end
 end
 
 @ExecSpace("ClientOnly")
+method string FindVisibleActionUsingKey(string keyName, string excludingAction)
+-- [추가] 이 화면에 실제로 보이는 3행(1번 입력/2번 입력/확인) 중에서만
+-- 같은 키를 쓰는 액션을 찾는다. 없으면 "".
+if self._T == nil or self._T.slots == nil then return "" end
+for _, slot in ipairs(self._T.slots) do
+	local a = slot.action
+	if a ~= nil and a ~= "" and a ~= excludingAction then
+		if _SettingsManager:GetKeyName(a) == keyName then
+			return a
+		end
+	end
+end
+return ""
+end
+
+@ExecSpace("ClientOnly")
 method void HandleRebindKeyDown(KeyDownEvent event)
 local action = self.waitingAction
 local newName = _SettingsManager:KeyNameFromCode(event.key)
@@ -352,7 +368,12 @@ if _SettingsManager:IsKeyAllowed(newName) == false then
 	return
 end
 
-if _SettingsManager:FindActionUsingKey(newName, action) ~= "" then
+-- [변경] 중복 검사는 이 화면에 보이는 3행끼리만 한다.
+-- SettingsManager:FindActionUsingKey는 8개 액션을 전부 훑는데,
+-- MoveLeft/MoveRight 등 캐릭터 조작 키는 이 화면에 없어서 플레이어가
+-- 비울 수가 없다. 그래서 A(=MoveLeft 기본값)나 D(=MoveRight 기본값)를
+-- 넣으려 하면 영영 거절당한다.
+if self:FindVisibleActionUsingKey(newName, action) ~= "" then
 	self:ShowNotice("이미 사용 중인 키입니다")
 	self:CancelWaiting()
 	return
