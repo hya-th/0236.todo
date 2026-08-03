@@ -235,6 +235,12 @@ return keyName
 end
 
 @ExecSpace("ClientOnly")
+method string WaitingTextOf(string keyName)
+-- [추가] 입력을 받는 중인 행의 표시. 키 이름을 대괄호로 감싼다.
+return "[" .. self:DisplayOf(keyName) .. "]"
+end
+
+@ExecSpace("ClientOnly")
 method table SlotByAction(string action)
 for _, slot in ipairs(self._T.slots) do
 	if slot.action == action then return slot end
@@ -356,13 +362,20 @@ if self.waitingAction == slot.action then
 	return
 end
 
--- 다른 행이 대기 중이었으면 그 행은 원래 값으로 되돌리고 넘어온다
+-- [변경] 다른 행이 대기 중이었으면 그 행을 먼저 마무리하고 넘어온다.
+-- 예전에는 CancelWaiting으로 버려서, 1번 행에 키를 넣어 둔 채 2번 행의
+-- [변경]을 누르면 1번 행이 예전 값으로 되돌아갔다.
 if self.waitingAction ~= "" then
-	self:CancelWaiting()
+	self:EndWaiting(true)
 end
 
 self.waitingAction = slot.action
 self._T.pendingKeyName = ""
+-- [추가] 어느 행이 입력을 받는 중인지 보이게 한다. 키 이름은 지우지 않고
+-- 대괄호로 감싸기만 하므로 현재 키도 계속 보인다.
+if slot.text ~= nil then
+	slot.text.Text = self:WaitingTextOf(_SettingsManager:GetKeyName(slot.action))
+end
 if isvalid(slot.icon) then
 	slot.icon.Enable = true
 end
@@ -397,6 +410,21 @@ if _SettingsManager:HasUnsavedChanges() then
 else
 	self:ShowNotice("변경되었습니다")
 end
+end
+
+@ExecSpace("ClientOnly")
+method void EndWaiting(boolean keepChange)
+-- [추가] 대기 상태를 끝낸다.
+--   keepChange = true  : 받아 둔 키가 있으면 저장하고 끝낸다(값을 버리지 않는다)
+--   keepChange = false : 원래 키로 되돌린다
+-- ESC로 명시적으로 취소할 때만 false를 쓴다. 다른 행으로 넘어가거나
+-- 창을 닫는 것은 "취소"가 아니므로 값을 지키는 쪽이 맞다.
+if self.waitingAction == "" then return end
+if keepChange and self._T.pendingKeyName ~= "" then
+	self:CommitPendingKey()
+	return
+end
+self:CancelWaiting()
 end
 
 @ExecSpace("ClientOnly")
@@ -480,7 +508,7 @@ end
 -- 두 번 누르기: 칸에 미리 보여 주기만 하고, 저장은 [변경]을 다시 눌렀을 때.
 local slot = self:SlotByAction(action)
 if slot ~= nil and slot.text ~= nil then
-	slot.text.Text = self:DisplayOf(newName)
+	slot.text.Text = self:WaitingTextOf(newName)
 end
 self:ShowNotice("[변경]을 다시 누르면 저장됩니다")
 end
@@ -561,7 +589,7 @@ end
 
 @ExecSpace("ClientOnly")
 method void OnApplyClick()
-self:CancelWaiting()
+self:EndWaiting(true)
 if _SettingsManager:HasUnsavedChanges() == false then
 	self:ShowNotice("변경된 내용이 없습니다")
 	return
@@ -577,7 +605,7 @@ method void OnCloseClick()
 -- ReceiveSaveResult)이 끝나기 전에 창을 닫으면 saved가 아직 옛 값이라
 -- 방금 바꾼 키가 통째로 날아갔다. 키는 [변경]에서 이미 저장되므로,
 -- 여기서는 아직 저장 안 된 것(볼륨 등)만 마저 저장하고 닫는다.
-self:CancelWaiting()
+self:EndWaiting(true)
 if _SettingsManager:HasUnsavedChanges() then
 	_SettingsManager:Apply()
 end
