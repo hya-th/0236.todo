@@ -64,6 +64,10 @@ property string action1 = "BeatLeft" -- 1번 입력
 property string action2 = "BeatRight" -- 2번 입력
 property string action3 = "BeatConfirm" -- 확인
 
+-- 위 세 값이 프로퍼티 패널에서 다른 액션으로 저장돼 있어도 리듬 액션으로
+-- 바로잡는다. 이 화면에 다른 액션을 붙이려면 false로 끈다.
+property boolean forceRhythmActions = true
+
 property string waitingLabel = "입력 대기" -- 키가 비어 있을 때 키 박스에 표시할 문구
 property number noticeDurationSeconds = 1.6 -- 안내 문구 표시 시간
 
@@ -107,6 +111,23 @@ else
 	log("[SettingsLogic] settingsGroup 미연결 — 패널을 열 수 없다")
 end
 
+-- [추가] 이 화면은 리듬 커맨드 키 화면이므로 세 행을 강제로 고정한다.
+-- action1~3 프로퍼티 값은 프로젝트 파일에 저장되어 스크립트의 기본값을
+-- 덮어쓴다. 거기에 MoveLeft/MoveRight/Jump가 들어가 있으면 화면이
+-- 캐릭터 조작 키(A/D/Space)를 만지게 되고, 전투 키는 그대로 남는다.
+-- 프로퍼티 패널을 손대지 않아도 맞게 동작하도록 여기서 바로잡는다.
+-- 다른 액션을 붙이고 싶으면 forceRhythmActions를 false로 끄면 된다.
+if self.forceRhythmActions then
+	if self.action1 ~= "BeatLeft" or self.action2 ~= "BeatRight" or self.action3 ~= "BeatConfirm" then
+		log("[SettingsLogic] 키 행이 리듬 액션이 아니어서 바로잡음: "
+			.. tostring(self.action1) .. "/" .. tostring(self.action2) .. "/" .. tostring(self.action3)
+			.. " → BeatLeft/BeatRight/BeatConfirm")
+	end
+	self.action1 = "BeatLeft"
+	self.action2 = "BeatRight"
+	self.action3 = "BeatConfirm"
+end
+
 self._T.slots = {
 	{ action = self.action1, btn = self.btnChange1, text = self.keyText1, icon = self.waitIcon1 },
 	{ action = self.action2, btn = self.btnChange2, text = self.keyText2, icon = self.waitIcon2 },
@@ -115,10 +136,6 @@ self._T.slots = {
 
 self:BuildDisplayNames()
 
--- [추가] 세 행이 어떤 액션에 묶여 있는지 남긴다.
--- 프로퍼티 값은 프로젝트에 저장되어 파일 기본값을 덮어쓰므로,
--- 여기가 BeatLeft/BeatRight/BeatConfirm이 아니면 전투 키가 아니라
--- 캐릭터 조작 키(MoveLeft=A, MoveRight=D, Jump=Space)를 만지고 있는 것이다.
 log("[SettingsLogic] 키 행 연결: 1번=" .. tostring(self.action1)
 	.. " / 2번=" .. tostring(self.action2)
 	.. " / 확인=" .. tostring(self.action3))
