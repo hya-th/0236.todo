@@ -115,6 +115,14 @@ self._T.slots = {
 
 self:BuildDisplayNames()
 
+-- [추가] 세 행이 어떤 액션에 묶여 있는지 남긴다.
+-- 프로퍼티 값은 프로젝트에 저장되어 파일 기본값을 덮어쓰므로,
+-- 여기가 BeatLeft/BeatRight/BeatConfirm이 아니면 전투 키가 아니라
+-- 캐릭터 조작 키(MoveLeft=A, MoveRight=D, Jump=Space)를 만지고 있는 것이다.
+log("[SettingsLogic] 키 행 연결: 1번=" .. tostring(self.action1)
+	.. " / 2번=" .. tostring(self.action2)
+	.. " / 확인=" .. tostring(self.action3))
+
 -- 열기 버튼을 가장 먼저 연결한다. 다른 슬롯이 비어 있어도 창은 열리게.
 if self.openBtn ~= nil then
 	self.openBtnHandler = self.openBtn.Entity:ConnectEvent(ButtonClickEvent, self.OnOpenBtnClick)
@@ -474,6 +482,14 @@ _SettingsManager:SetDraftVolume("sfx", sfx)
 _SettingsManager:SetDraftVolume("voice", voice)
 
 self:RefreshFromDraft()
+
+-- [변경] 되돌린 값을 저장까지 한다. 예전에는 draft만 바꿔서, 되돌리기를
+-- 누른 뒤 창을 닫으면 OnCloseClick의 RevertDraftToSaved가 예전 키를 도로
+-- 불러왔다(= 되돌리기가 먹히지 않았다). 키 변경이 즉시 저장되는 지금
+-- 방식과도 맞춘다.
+if _SettingsManager:HasUnsavedChanges() then
+	_SettingsManager:Apply()
+end
 self:ShowNotice("키 설정을 기본값으로 되돌렸습니다")
 end
 
