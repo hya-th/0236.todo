@@ -60,6 +60,17 @@ property any keyDownHandler = nil
 
 @ExecSpace("ClientOnly")
 method void OnBeginPlay()
+-- ==============================================================
+-- [추가] 설정값은 프로퍼티가 아니라 _T에 둔다. 이미 임포트된 스크립트에
+-- 새 프로퍼티를 붙이면 프로젝트에 등록되지 않아 "no such field"가 난다.
+-- ==============================================================
+-- RhythmGameManager 엔티티를 찾을 태그(BattleInput의 managerTag와 같은 값)
+self._T.managerTag = "rhythmmanager"
+-- [스테이지로 돌아가기]가 띄울 UI 그룹 이름.
+-- _UIManager가 /ui/BattleLoseUIGroup → /ui/BattleLose 순으로 찾는다.
+-- 별도 그룹 없이 GameUI의 결과창만 쓰려면 ""로 비워 둔다.
+self._T.battleLoseGroup = "BattleLose"
+
 -- 슬롯이 비어 있어도 멈추지 않는다. 건너뛴 항목은 로그로 알려준다.
 self:SetEnableIfValid(self.popupContent, false, "popupContent")
 self:SetEnableIfValid(self.countdownLabel, false, "countdownLabel")
@@ -353,10 +364,12 @@ end
 
 @ExecSpace("ClientOnly")
 method void OnHomeClick()
+-- [변경] 이 버튼은 "스테이지로 돌아가기". 로비로 나가는 대신 전투를
+-- 패배로 끝내고 BattleLose 화면을 띄운다. 안내 문구도 그에 맞춘다.
 if self.processing then return end
 _ConfirmDialogController:Show(
-	"홈으로 이동",
-	"진행 중인 스테이지가 초기화됩니다. 홈으로 나갈까요?",
+	"스테이지로 돌아가기",
+	"지금 나가면 이번 전투는 패배로 처리됩니다. 돌아갈까요?",
 	self.ExecuteHome,
 	nil
 )
@@ -375,17 +388,58 @@ end
 
 @ExecSpace("ClientOnly")
 method void ExecuteHome()
+-- ==============================================================
+-- [변경] "스테이지로 돌아가기" 확정.
+-- 순서가 중요하다.
+--   1) 팝업을 먼저 닫는다 — 결과 화면을 가리지 않게.
+--   2) 전투를 패배로 마감한다 — RhythmGameManager가 hasStarted를 내리므로,
+--      3)에서 정지가 풀릴 때 ResumeBattle이 BGM을 다시 틀지 않는다.
+--      (반대 순서로 하면 노래가 잠깐 다시 나왔다가 꺼진다)
+--   3) 정지를 푼다 — 안 풀면 결과 화면 뒤에서 게임이 멈춘 채 남는다.
+-- ==============================================================
 if self.processing then return end
 self:SetProcessing(true)
--- StageController가 먼저 재개하고 정리까지 수행한다(그쪽 순서 계약).
-_StageController:RequestReturnHome()
--- [추가] 재개 알림이 오지 않아도 로비에서 소리가 막힌 채로 남지 않게 한다.
-self:SetMusicPaused(false)
+
 self.isOpen = false
 if isvalid(self.popupContent) then
 	self.popupContent.Enable = false
 end
+
+self:ShowBattleLose()
+
+_PauseManager:RequestResume(self.pauseReasonId)
+self:SetMusicPaused(false)
+
 self:SetProcessing(false)
+end
+
+@ExecSpace("ClientOnly")
+method void ShowBattleLose()
+-- [추가] 전투를 패배로 끝내고 BattleLose 화면을 띄운다.
+-- RhythmGameManager:OnBattleLose가 러너 정지, 마크 정리, 캐릭터 조작 복구,
+-- BGM 정지까지 하고 GameUI:ShowResult(false, 0, stageTime)를 부른다.
+-- 이미 끝난 전투면 그쪽에서 알아서 무시한다(hasStarted 검사).
+local mgrEntity = nil
+local ok = pcall(function()
+	mgrEntity = _EntityService:GetEntityByTag(self._T.managerTag)
+end)
+if ok and mgrEntity ~= nil and mgrEntity.RhythmGameManager ~= nil then
+	mgrEntity.RhythmGameManager:OnBattleLose()
+else
+	log("[InGameSettingLogic] 태그 '" .. tostring(self._T.managerTag)
+		.. "'로 RhythmGameManager를 못 찾음 — 전투 마감 없이 화면만 띄운다")
+end
+
+-- 따로 만들어 둔 BattleLose UI 그룹이 있으면 켠다.
+-- 없으면 _UIManager가 "그룹 없음" 로그만 남기고 넘어간다.
+if self._T.battleLoseGroup ~= "" then
+	local okUI = pcall(function()
+		_UIManager:ShowGroup(self._T.battleLoseGroup)
+	end)
+	if okUI == false then
+		log("[InGameSettingLogic] BattleLose UI 그룹을 켜지 못했다")
+	end
+end
 end
 
 @ExecSpace("ClientOnly")
