@@ -79,6 +79,11 @@ property integer syncMaxMs = 100
 property boolean isOpen = false
 property string waitingAction = "" -- 입력 대기 중인 액션("" = 없음)
 property string pendingKeyName = "" -- 입력만 받아 두고 아직 저장 안 한 키("" = 없음)
+
+-- 키 변경을 몇 번 눌러 끝낼지.
+--   false(기본) = [변경] 누르고 키를 누르면 그 자리에서 저장 (한 번 누르기)
+--   true        = 키를 누른 뒤 [변경]을 한 번 더 눌러야 저장 (두 번 누르기)
+property boolean confirmWithButton = false
 property integer noticeTimerId = 0
 
 property any sliderBgmHandler = nil
@@ -298,14 +303,22 @@ end
 @ExecSpace("ClientOnly")
 method void OnKeyButtonClick(table slot)
 -- ==============================================================
--- [변경] "변경" 버튼은 두 번 눌러 쓴다.
---   1번째: 이 행이 키 입력을 받기 시작한다. 칸의 글자는 건드리지 않고
---          지금 배정된 키를 그대로 보여 준다(입력 대기 문구로 덮지 않는다).
---   키 입력: 칸에 누른 키가 미리 표시된다. 아직 저장은 아니다.
---   2번째: 미리 표시된 키를 draft에 넣고 저장까지 한다.
+-- [변경] confirmWithButton = false (기본, 한 번 누르기)
+--   [변경] 클릭 → 키 입력을 받기 시작. 칸의 글자는 건드리지 않는다.
+--   키 입력 → 바로 반영 + 저장.
+--   대기 중에 [변경]을 다시 누르면 취소.
+--
+-- confirmWithButton = true (두 번 누르기)
+--   [변경] 클릭 → 대기 시작 → 키 입력(칸에 미리 표시, 저장 안 함)
+--   → [변경] 다시 클릭 → 그때 반영 + 저장.
 -- ==============================================================
 if self.waitingAction == slot.action then
-	-- 같은 행에서 두 번째 클릭 = 확정
+	if self.confirmWithButton == false then
+		-- 한 번 누르기 모드: 같은 버튼을 다시 누르면 대기 취소
+		self:CancelWaiting()
+		self:ShowNotice("키 변경을 취소했습니다")
+		return
+	end
 	if self.pendingKeyName == "" then
 		self:ShowNotice("먼저 변경할 키를 누르세요")
 		return
@@ -324,7 +337,11 @@ self.pendingKeyName = ""
 if isvalid(slot.icon) then
 	slot.icon.Enable = true
 end
-self:ShowNotice("변경할 키를 누른 뒤 [변경]을 다시 누르세요. (ESC: 취소)")
+if self.confirmWithButton then
+	self:ShowNotice("변경할 키를 누른 뒤 [변경]을 다시 누르세요. (ESC: 취소)")
+else
+	self:ShowNotice("변경할 키를 누르세요. (ESC: 취소)")
+end
 end
 
 @ExecSpace("ClientOnly")
@@ -423,9 +440,15 @@ if self:FindVisibleActionUsingKey(newName, action) ~= "" then
 	return
 end
 
--- [변경] 여기서는 저장하지 않는다. 칸에 미리 보여 주기만 하고,
--- 실제 반영·저장은 [변경]을 한 번 더 눌렀을 때 CommitPendingKey가 한다.
 self.pendingKeyName = newName
+
+if self.confirmWithButton == false then
+	-- 한 번 누르기: 누른 그 자리에서 반영 + 저장
+	self:CommitPendingKey()
+	return
+end
+
+-- 두 번 누르기: 칸에 미리 보여 주기만 하고, 저장은 [변경]을 다시 눌렀을 때.
 local slot = self:SlotByAction(action)
 if slot ~= nil and slot.text ~= nil then
 	slot.text.Text = self:DisplayOf(newName)
