@@ -64,7 +64,7 @@ property string action1 = "BeatLeft" -- 1번 입력
 property string action2 = "BeatRight" -- 2번 입력
 property string action3 = "BeatConfirm" -- 확인
 
-property string waitingLabel = "입력 대기" -- 대기 중 키 박스에 표시할 문구
+property string waitingLabel = "입력 대기" -- 키가 비어 있을 때 키 박스에 표시할 문구
 property number noticeDurationSeconds = 1.6 -- 안내 문구 표시 시간
 
 -- 싱크 조절. SettingsManager에 syncOffsetMs가 없으면 이 값이 세션 동안만
@@ -78,6 +78,7 @@ property integer syncMaxMs = 100
 
 property boolean isOpen = false
 property string waitingAction = "" -- 입력 대기 중인 액션("" = 없음)
+property string pendingKeyName = "" -- 입력만 받아 두고 아직 저장 안 한 키("" = 없음)
 property integer noticeTimerId = 0
 
 property any sliderBgmHandler = nil
@@ -189,7 +190,8 @@ end
 
 @ExecSpace("ClientOnly")
 method string DisplayOf(string keyName)
-if keyName == nil or keyName == "" then return "-" end
+-- [변경] 배정된 키가 없어 칸이 비는 경우에만 waitingLabel("입력 대기")을 띄운다.
+if keyName == nil or keyName == "" then return self.waitingLabel end
 local mapped = self._T.displayByName[keyName]
 if mapped ~= nil then return mapped end
 -- "Alpha7" → "7"
@@ -295,26 +297,69 @@ end
 
 @ExecSpace("ClientOnly")
 method void OnKeyButtonClick(table slot)
--- 한 번에 하나의 행만 입력 대기 상태일 수 있다.
-if self.waitingAction ~= "" then
+-- ==============================================================
+-- [변경] "변경" 버튼은 두 번 눌러 쓴다.
+--   1번째: 이 행이 키 입력을 받기 시작한다. 칸의 글자는 건드리지 않고
+--          지금 배정된 키를 그대로 보여 준다(입력 대기 문구로 덮지 않는다).
+--   키 입력: 칸에 누른 키가 미리 표시된다. 아직 저장은 아니다.
+--   2번째: 미리 표시된 키를 draft에 넣고 저장까지 한다.
+-- ==============================================================
+if self.waitingAction == slot.action then
+	-- 같은 행에서 두 번째 클릭 = 확정
+	if self.pendingKeyName == "" then
+		self:ShowNotice("먼저 변경할 키를 누르세요")
+		return
+	end
+	self:CommitPendingKey()
 	return
 end
-self.waitingAction = slot.action
-if slot.text ~= nil then
-	slot.text.Text = self.waitingLabel
+
+-- 다른 행이 대기 중이었으면 그 행은 원래 값으로 되돌리고 넘어온다
+if self.waitingAction ~= "" then
+	self:CancelWaiting()
 end
+
+self.waitingAction = slot.action
+self.pendingKeyName = ""
 if isvalid(slot.icon) then
 	slot.icon.Enable = true
 end
-self:ShowNotice("변경할 키를 누르세요. (ESC: 취소)")
+self:ShowNotice("변경할 키를 누른 뒤 [변경]을 다시 누르세요. (ESC: 취소)")
+end
+
+@ExecSpace("ClientOnly")
+method void CommitPendingKey()
+-- [추가] 미리 받아 둔 키를 실제로 반영하고 저장한다.
+local action = self.waitingAction
+local newName = self.pendingKeyName
+if action == "" then return end
+if newName == "" then return end
+
+local slot = self:SlotByAction(action)
+if slot ~= nil and isvalid(slot.icon) then
+	slot.icon.Enable = false
+end
+self.waitingAction = ""
+self.pendingKeyName = ""
+
+-- SetDraftKey가 "keys" 이벤트를 발행하고, OnSettingsChanged가 표시를 갱신한다.
+_SettingsManager:SetDraftKey(action, newName)
+
+-- 저장. 결과는 "applied" / "applyFailed" 이벤트로 돌아온다(OnSettingsChanged).
+if _SettingsManager:HasUnsavedChanges() then
+	_SettingsManager:Apply()
+else
+	self:ShowNotice("변경되었습니다")
+end
 end
 
 @ExecSpace("ClientOnly")
 method void CancelWaiting()
--- ESC / 금지 키 / 중복 거절: 원래 키 표시로 되돌린다.
+-- ESC / 다른 행으로 이동 / 창 닫기: 미리 표시된 키를 버리고 원래 키로 되돌린다.
 if self.waitingAction == "" then return end
 local slot = self:SlotByAction(self.waitingAction)
 self.waitingAction = ""
+self.pendingKeyName = ""
 if slot == nil then return end
 if slot.text ~= nil then
 	slot.text.Text = self:DisplayOf(_SettingsManager:GetDraft().keys[slot.action])
@@ -362,9 +407,9 @@ if newName == "Escape" then
 	return
 end
 
+-- [변경] 거절돼도 대기 상태는 유지한다. 다른 키를 바로 다시 누를 수 있게.
 if _SettingsManager:IsKeyAllowed(newName) == false then
 	self:ShowNotice("이 키는 사용할 수 없습니다")
-	self:CancelWaiting()
 	return
 end
 
@@ -375,18 +420,17 @@ end
 -- 넣으려 하면 영영 거절당한다.
 if self:FindVisibleActionUsingKey(newName, action) ~= "" then
 	self:ShowNotice("이미 사용 중인 키입니다")
-	self:CancelWaiting()
 	return
 end
 
+-- [변경] 여기서는 저장하지 않는다. 칸에 미리 보여 주기만 하고,
+-- 실제 반영·저장은 [변경]을 한 번 더 눌렀을 때 CommitPendingKey가 한다.
+self.pendingKeyName = newName
 local slot = self:SlotByAction(action)
-if slot ~= nil and isvalid(slot.icon) then
-	slot.icon.Enable = false
+if slot ~= nil and slot.text ~= nil then
+	slot.text.Text = self:DisplayOf(newName)
 end
-self.waitingAction = ""
--- SetDraftKey가 "keys" 이벤트를 발행하고, OnSettingsChanged가 표시를 갱신한다.
-_SettingsManager:SetDraftKey(action, newName)
-self:ShowNotice("변경되었습니다. 적용하기를 눌러 저장하세요")
+self:ShowNotice("[변경]을 다시 누르면 저장됩니다")
 end
 
 @ExecSpace("ClientOnly")
