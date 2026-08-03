@@ -161,9 +161,31 @@ self.isOpen = true
 if self.pauseBtn ~= nil then
 	self.pauseBtn.Enable = false
 end
+
+-- [추가] 노래를 먼저 멈춘다. 팝업이 뜬 뒤에 끄면 한 박자 늦게 끊긴다.
+self:SetMusicPaused(true)
+
 _PauseManager:RequestPause(self.pauseReasonId)
 self:RefreshFromDraft()
 self:ShowPopup()
+end
+
+@ExecSpace("ClientOnly")
+method void SetMusicPaused(boolean on)
+-- [추가] 팝업이 뜨고 지는 동안 BGM과 효과음을 멈췄다 되살린다.
+-- 실제 처리는 모든 재생을 소유한 _SoundChannels가 한다.
+--   on = true  → BGM을 끄고 새로 들어오는 효과음도 막는다
+--   on = false → 막은 것을 푼다(전투 BGM은 RhythmGameManager가 비트와 함께
+--                처음부터 다시 튼다. 음악만 먼저 살리면 비트와 어긋난다)
+-- 사운드 때문에 팝업이 안 뜨는 일이 없도록 pcall로 감싼다.
+-- _PauseManager도 같은 호출을 하는 구성이면 여기서는 아무 일도 하지 않는다
+-- (_SoundChannels:SetPaused는 같은 상태로 다시 부르면 즉시 반환한다).
+local ok = pcall(function()
+	_SoundChannels:SetPaused(on)
+end)
+if ok == false then
+	log("[InGameSettingLogic] 사운드 정지 실패(무시) — _SoundChannels 임포트 확인")
+end
 end
 
 @ExecSpace("ClientOnly")
@@ -195,6 +217,9 @@ if isvalid(self.countdownLabel) then
 end
 
 if not event.isPaused then
+	-- [추가] 재개. 카운트다운이 끝나고 실제로 풀리는 이 시점에 노래도 되살린다.
+	self:SetMusicPaused(false)
+
 	if self.pauseBtn ~= nil then
 		self.pauseBtn.Enable = true
 	end
@@ -354,6 +379,8 @@ if self.processing then return end
 self:SetProcessing(true)
 -- StageController가 먼저 재개하고 정리까지 수행한다(그쪽 순서 계약).
 _StageController:RequestReturnHome()
+-- [추가] 재개 알림이 오지 않아도 로비에서 소리가 막힌 채로 남지 않게 한다.
+self:SetMusicPaused(false)
 self.isOpen = false
 if isvalid(self.popupContent) then
 	self.popupContent.Enable = false
