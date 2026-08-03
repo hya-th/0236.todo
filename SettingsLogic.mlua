@@ -1,0 +1,868 @@
+@Logic
+script SettingsLogic extends Logic
+
+property Entity settingsGroup = "13222179-5ab0-45c7-b2f5-699c5541ec00"
+
+property ButtonComponent openBtn = "d3d2d59e-c951-4d8d-ae1d-25569b073373"
+
+property Entity hideWhileOpen = "b12cf809-0d29-49a7-9e05-51f6829610dd"
+
+property SliderComponent sliderBgm = "1e61997b-e20c-4711-9be0-6bad3196a567"
+
+property TextGUIRendererComponent valueBgm = "3aaf2490-7641-452a-829d-433fa68c046c"
+
+property UITouchReceiveComponent sliderBgmTouch = "1e61997b-e20c-4711-9be0-6bad3196a567"
+
+property SliderComponent sliderSfx = "b05d38b0-319a-4ef5-8cd6-5d3b29f4bde9"
+
+property TextGUIRendererComponent valueSfx = "b82ff34a-c646-4f6c-b781-14f86feed0d9"
+
+property UITouchReceiveComponent sliderSfxTouch = "b05d38b0-319a-4ef5-8cd6-5d3b29f4bde9"
+
+property TextGUIRendererComponent keyText1 = "5f531321-da9d-43fd-b1e8-b5a28513ef2d"
+
+property ButtonComponent btnChange1 = "0cfabdac-69d7-4e07-9458-fda3a94bd4a8"
+
+property Entity waitIcon1 = "9bcee183-0af4-4b41-a550-bb23de5f7783"
+
+property TextGUIRendererComponent keyText2 = "a5092338-5ef3-4e29-8940-55ab92a62ac0"
+
+property ButtonComponent btnChange2 = "e711282c-7395-4ee8-b33c-8032100dd133"
+
+property Entity waitIcon2 = "e9652562-be58-4862-a607-6263785234b6"
+
+property TextGUIRendererComponent keyText3 = "239d89e9-ee0c-4b43-81dd-f8d19e9f693b"
+
+property ButtonComponent btnChange3 = "c260e9c0-4770-4200-b841-46a8650d3b54"
+
+property Entity waitIcon3 = "780742b2-992c-431f-8c18-bade514a7551"
+
+property ButtonComponent btnRevertKeys = "5cff0dfe-173b-4834-8c69-5103c4a30fe7"
+
+property TextGUIRendererComponent syncValueText = "999e76f6-a58c-407c-a910-0158ee54c32b"
+
+property ButtonComponent btnSyncAdjust = "76fe576f-a671-4876-9d68-2d47e7d8c411"
+
+property ButtonComponent btnApply = "56cad499-b1ae-4f10-8fc9-478836ca6b92"
+
+property ButtonComponent btnClose = "5d24552a-031b-4ab3-90da-133cd9db8a9f"
+
+property Entity noticeLabel = "nil -- (선택) 안내 문구 엔티티"
+
+property TextGUIRendererComponent noticeText = "nil -- (선택) 안내 문구 텍스트"
+
+property string action1 = "MoveLeft"
+
+property string action2 = "MoveRight"
+
+property string action3 = "Jump"
+
+property string waitingLabel = "입력 대기"
+
+property number noticeDurationSeconds = 1.6
+
+property integer localSyncOffsetMs = 0
+
+property integer syncStepMs = 10
+
+property integer syncMinMs = -100
+
+property integer syncMaxMs = 100
+
+property boolean isOpen = false
+
+property string waitingAction = ""
+
+property integer noticeTimerId = 0
+
+property any sliderBgmHandler = nil
+
+property any sliderSfxHandler = nil
+
+property any sliderSfxTouchHandler = nil
+
+property any btnRevertKeysHandler = nil
+
+property any btnSyncAdjustHandler = nil
+
+property any btnApplyHandler = nil
+
+property any btnCloseHandler = nil
+
+property any openBtnHandler = nil
+
+property any keyDownHandler = nil
+
+property any settingsHandler = nil
+
+@ExecSpace("ClientOnly")
+method void OnBeginPlay()
+-- ==============================================================
+-- [변경] 런타임 상태와 동작 설정은 프로퍼티가 아니라 self._T에 둔다.
+-- 에디터에 새 프로퍼티를 추가하면 기존 프로젝트에 등록되지 않아
+-- "cannot set X, no such field"로 죽는 일이 있어서, 선언이 필요 없는
+-- _T를 쓴다. 아래 값들이 이 화면의 동작 스위치다.
+-- ==============================================================
+-- true  = 아래 rhythmActions를 우선 쓴다(단, 설정 데이터에 있는 액션만)
+-- false = 프로퍼티 패널의 action1~3을 그대로 사용
+self._T.forceRhythmActions = true
+self._T.rhythmActions = { "BeatLeft", "BeatRight", "BeatConfirm" }
+
+-- true  = 키를 누른 뒤 [변경]을 눌러야 저장 (변경 버튼이 저장 시점)
+-- false = [변경] 누르고 키를 누르면 그 자리에서 저장
+self._T.confirmWithButton = true
+
+-- 입력만 받아 두고 아직 저장하지 않은 키("" = 없음)
+self._T.pendingKeyName = ""
+
+-- [추가] 키가 배정되지 않은 칸에 쓰는 글자. waitingLabel("입력 대기")과
+-- 섞어 쓰면 "저장이 안 돼서 빈 칸"인 상태를 "입력을 기다리는 중"으로
+-- 착각하게 되므로 따로 둔다. DisplayOf / WaitingTextOf 참고.
+self._T.unassignedLabel = "없음"
+
+self:BuildDisplayNames()
+
+-- 슬롯을 아직 다 연결하지 않아도 멈추지 않는다. 비어 있는 슬롯은 건너뛰고
+-- 무엇이 빠졌는지 로그로 알려주므로 UI를 만들어가며 단계적으로 확인할 수 있다.
+if isvalid(self.settingsGroup) then
+	self.settingsGroup.Enable = false
+else
+	log("[SettingsLogic] settingsGroup 미연결 — 패널을 열 수 없다")
+end
+
+-- ==============================================================
+-- [수정] 이 화면은 리듬 커맨드 키 화면이라 세 행을 리듬 액션으로 맞춘다.
+-- 다만 예전 코드처럼 self.action1~3에 BeatLeft/BeatRight/BeatConfirm을
+-- 무조건 덮어쓰면, 설정 데이터에 그 액션이 없을 때
+--   (1) draft.keys[action]이 nil이라 칸이 값 대신 대기 문구만 보이고
+--   (2) SetDraftKey가 아무 데도 쓰이지 않아 바꾼 키가 저장되지 않는다.
+-- 즉 "바꾼 값이 UI에 남지도, 데이터로 저장되지도 않는" 증상의 뿌리였다.
+-- 그래서 설정 데이터에 실제로 있는 액션 이름일 때만 리듬 액션으로 바꾸고,
+-- 없으면 프로퍼티 값을 그대로 쓰고 로그로 알린다.
+-- 프로퍼티 자체(self.action1~3)는 건드리지 않는다. 에디터에 저장된 값을
+-- 런타임에 지우면 다른 스크립트가 읽는 값까지 바뀌기 때문이다.
+-- ==============================================================
+self._T.actions = { self.action1, self.action2, self.action3 }
+
+local draftKeys = self:DraftKeys()
+if self._T.forceRhythmActions then
+	for i = 1, 3 do
+		local wanted = self._T.rhythmActions[i]
+		if draftKeys == nil or draftKeys[wanted] ~= nil then
+			if self._T.actions[i] ~= wanted then
+				log("[SettingsLogic] " .. tostring(i) .. "번 키 행 교정: "
+					.. tostring(self._T.actions[i]) .. " → " .. wanted)
+			end
+			self._T.actions[i] = wanted
+		else
+			log("[SettingsLogic] 설정 데이터에 " .. wanted .. " 액션이 없어 "
+				.. tostring(i) .. "번 행은 프로퍼티 값("
+				.. tostring(self._T.actions[i]) .. ")을 유지한다")
+		end
+	end
+end
+
+-- [추가] 최종 액션 이름이 설정 데이터에 실제로 있는지 확인한다. 없으면 그 행은
+-- 표시도 저장도 되지 않으므로, 조용히 실패하지 않도록 경고를 남긴다.
+if draftKeys ~= nil then
+	for i = 1, 3 do
+		local a = self._T.actions[i]
+		if a == nil or a == "" or draftKeys[a] == nil then
+			log("[SettingsLogic] 경고: " .. tostring(i) .. "번 행의 액션("
+				.. tostring(a) .. ")이 설정 데이터에 없다 — 이 행은 저장되지 않는다")
+		end
+	end
+end
+
+self._T.slots = {
+	{ action = self._T.actions[1], btn = self.btnChange1, text = self.keyText1, icon = self.waitIcon1 },
+	{ action = self._T.actions[2], btn = self.btnChange2, text = self.keyText2, icon = self.waitIcon2 },
+	{ action = self._T.actions[3], btn = self.btnChange3, text = self.keyText3, icon = self.waitIcon3 },
+}
+
+log("[SettingsLogic] 키 행 연결: 1번=" .. tostring(self._T.actions[1])
+	.. " / 2번=" .. tostring(self._T.actions[2])
+	.. " / 확인=" .. tostring(self._T.actions[3]))
+
+-- 열기 버튼을 가장 먼저 연결한다. 다른 슬롯이 비어 있어도 창은 열리게.
+if self.openBtn ~= nil then
+	self.openBtnHandler = self.openBtn.Entity:ConnectEvent(ButtonClickEvent, self.OnOpenBtnClick)
+else
+	log("[SettingsLogic] openBtn 미연결 — _SettingsLogic:Toggle()로 열어야 한다")
+end
+
+for i, slot in ipairs(self._T.slots) do
+	if isvalid(slot.icon) then slot.icon.Enable = false end
+	if slot.btn ~= nil then
+		slot.clickHandler = slot.btn.Entity:ConnectEvent(ButtonClickEvent, function()
+			self:OnKeyButtonClick(slot)
+		end)
+	else
+		log("[SettingsLogic] btnChange" .. tostring(i) .. " 미연결 — 그 행의 키 변경 비활성")
+	end
+end
+
+if self.sliderBgm ~= nil then
+	self.sliderBgmHandler = self.sliderBgm.Entity:ConnectEvent(SliderValueChangedEvent, self.OnBgmChanged)
+end
+if self.sliderSfx ~= nil then
+	self.sliderSfxHandler = self.sliderSfx.Entity:ConnectEvent(SliderValueChangedEvent, self.OnSfxChanged)
+end
+if self.sliderSfxTouch ~= nil then
+	self.sliderSfxTouchHandler = self.sliderSfxTouch.Entity:ConnectEvent(UITouchEndDragEvent, self.OnSfxReleased)
+end
+if self.btnRevertKeys ~= nil then
+	self.btnRevertKeysHandler = self.btnRevertKeys.Entity:ConnectEvent(ButtonClickEvent, self.OnRevertKeysClick)
+end
+if self.btnSyncAdjust ~= nil then
+	self.btnSyncAdjustHandler = self.btnSyncAdjust.Entity:ConnectEvent(ButtonClickEvent, self.OnSyncAdjustClick)
+end
+if self.btnApply ~= nil then
+	self.btnApplyHandler = self.btnApply.Entity:ConnectEvent(ButtonClickEvent, self.OnApplyClick)
+end
+if self.btnClose ~= nil then
+	self.btnCloseHandler = self.btnClose.Entity:ConnectEvent(ButtonClickEvent, self.OnCloseClick)
+end
+
+self.keyDownHandler = _InputService:ConnectEvent(KeyDownEvent, self.OnGlobalKeyDown)
+self.settingsHandler = _SettingsManager:ConnectEvent(SettingsChangedEvent, self.OnSettingsChanged)
+
+self:HideNotice()
+log("[SettingsLogic] OnBeginPlay wired")
+end
+
+@ExecSpace("ClientOnly")
+method void OnEndPlay()
+-- [수정] OnBeginPlay가 도중에 끊기면 _T.slots가 없을 수 있다. 그때 ipairs가
+-- 에러를 내면 아래 해제 코드가 전부 실행되지 않아 이벤트 연결이 남는다.
+if self._T ~= nil and self._T.slots ~= nil then
+	for _, slot in ipairs(self._T.slots) do
+		if slot.clickHandler then slot.btn.Entity:DisconnectEvent(ButtonClickEvent, slot.clickHandler) end
+	end
+end
+if self.sliderBgmHandler then self.sliderBgm.Entity:DisconnectEvent(SliderValueChangedEvent, self.sliderBgmHandler) end
+if self.sliderSfxHandler then self.sliderSfx.Entity:DisconnectEvent(SliderValueChangedEvent, self.sliderSfxHandler) end
+if self.sliderSfxTouchHandler then self.sliderSfxTouch.Entity:DisconnectEvent(UITouchEndDragEvent, self.sliderSfxTouchHandler) end
+if self.btnRevertKeysHandler then self.btnRevertKeys.Entity:DisconnectEvent(ButtonClickEvent, self.btnRevertKeysHandler) end
+if self.btnSyncAdjustHandler then self.btnSyncAdjust.Entity:DisconnectEvent(ButtonClickEvent, self.btnSyncAdjustHandler) end
+if self.btnApplyHandler then self.btnApply.Entity:DisconnectEvent(ButtonClickEvent, self.btnApplyHandler) end
+if self.btnCloseHandler then self.btnClose.Entity:DisconnectEvent(ButtonClickEvent, self.btnCloseHandler) end
+if self.openBtnHandler then self.openBtn.Entity:DisconnectEvent(ButtonClickEvent, self.openBtnHandler) end
+if self.keyDownHandler then _InputService:DisconnectEvent(KeyDownEvent, self.keyDownHandler) end
+if self.settingsHandler then _SettingsManager:DisconnectEvent(SettingsChangedEvent, self.settingsHandler) end
+if self.noticeTimerId ~= 0 then _TimerService:ClearTimer(self.noticeTimerId) end
+end
+
+@ExecSpace("ClientOnly")
+method void BuildDisplayNames()
+-- SettingsManager는 "LeftArrow", "Alpha1", "Return" 같은 내부 이름을 준다.
+-- 화면에는 화살표와 짧은 표기로 보여준다.
+self._T.displayByName = {
+	LeftArrow = "←", RightArrow = "→", UpArrow = "↑", DownArrow = "↓",
+	Return = "Enter", Escape = "Esc", Space = "Space", Tab = "Tab",
+	LeftShift = "Shift", RightShift = "R-Shift",
+	LeftControl = "Ctrl", RightControl = "R-Ctrl",
+	LeftAlt = "Alt", RightAlt = "R-Alt",
+}
+end
+
+@ExecSpace("ClientOnly")
+method table DraftKeys()
+-- [추가] draft.keys를 안전하게 가져온다. 아직 로드되지 않았으면 nil.
+-- OnBeginPlay처럼 설정이 채워지기 전에 불릴 수 있는 자리에서도 쓰기 때문에
+-- 단계마다 nil을 확인한다.
+if _SettingsManager == nil then return nil end
+local draft = _SettingsManager:GetDraft()
+if draft == nil then return nil end
+return draft.keys
+end
+
+@ExecSpace("ClientOnly")
+method string DraftKeyOf(string action)
+-- [추가] 화면 표시와 중복 검사는 모두 draft(편집 중인 값)를 기준으로 한다.
+-- _SettingsManager:GetKeyName()은 "저장이 끝난" 값이어서, 방금 바꿔 놓고
+-- 아직 저장 왕복(Apply → 서버 → 결과)이 끝나지 않은 값을 옛 값으로
+-- 덮어썼다. 그래서 바꾼 키가 화면에서 되돌아가 보였다.
+if action == nil or action == "" then return "" end
+local keys = self:DraftKeys()
+if keys == nil then return "" end
+local name = keys[action]
+if name == nil then return "" end
+return name
+end
+
+@ExecSpace("ClientOnly")
+method string DisplayOf(string keyName)
+-- [수정] 키가 배정되지 않은 칸은 waitingLabel("입력 대기")이 아니라
+-- unassignedLabel로 표시한다. 예전에는 저장이 실패해 값이 비어도 "입력 대기"로
+-- 보여서, 입력을 기다리는 중인지 저장이 안 된 건지 구분할 수 없었다.
+if keyName == nil or keyName == "" then
+	if self._T ~= nil and self._T.unassignedLabel ~= nil then
+		return self._T.unassignedLabel
+	end
+	return "없음"
+end
+local mapped = self._T.displayByName[keyName]
+if mapped ~= nil then return mapped end
+-- "Alpha7" → "7"
+local digit = string.match(keyName, "^Alpha(%d)$")
+if digit ~= nil then return digit end
+return keyName
+end
+
+@ExecSpace("ClientOnly")
+method string WaitingTextOf(string keyName)
+-- [추가] 입력을 받는 중인 행의 표시. 키 이름을 대괄호로 감싼다.
+-- 배정된 키가 없을 때만 "[입력 대기]"로 무엇을 기다리는지 알려준다.
+if keyName == nil or keyName == "" then
+	return "[" .. self.waitingLabel .. "]"
+end
+return "[" .. self:DisplayOf(keyName) .. "]"
+end
+
+@ExecSpace("ClientOnly")
+method table SlotByAction(string action)
+if self._T == nil or self._T.slots == nil then return nil end
+for _, slot in ipairs(self._T.slots) do
+	if slot.action == action then return slot end
+end
+return nil
+end
+
+@ExecSpace("ClientOnly")
+method string TextForSlot(table slot)
+-- [추가] 한 행이 "지금 보여야 하는 글자"를 한곳에서 계산한다.
+--   입력 대기 중인 행 : 받아 둔 키(없으면 draft 값)를 대괄호로
+--   그 외             : draft에 들어 있는 값
+-- 갱신 경로가 여러 개(RefreshFromDraft / OnSettingsChanged / CommitPendingKey)
+-- 인데 각자 다르게 계산해서, 어떤 경로로 갱신되느냐에 따라 대기 중 표시가
+-- 지워지곤 했다. 한 함수로 모아 표시 규칙을 하나로 맞춘다.
+if slot == nil then return "" end
+if self.waitingAction ~= "" and slot.action == self.waitingAction then
+	local shown = self._T.pendingKeyName
+	if shown == "" then shown = self:DraftKeyOf(slot.action) end
+	return self:WaitingTextOf(shown)
+end
+return self:DisplayOf(self:DraftKeyOf(slot.action))
+end
+
+@ExecSpace("ClientOnly")
+method void OnOpenBtnClick()
+-- 로비의 설정 버튼. 한 번 더 누르면 닫힌다.
+self:Toggle()
+end
+
+@ExecSpace("ClientOnly")
+method void Toggle()
+if self.isOpen then
+	self:OnCloseClick()
+else
+	self:OpenSettings()
+end
+end
+
+@ExecSpace("ClientOnly")
+method void OpenSettings()
+if self.isOpen then return end
+if isvalid(self.settingsGroup) == false then
+	log("[SettingsLogic] settingsGroup 미연결 — 열 수 없다")
+	return
+end
+self.isOpen = true
+self.waitingAction = ""
+-- [추가] 지난번에 남은 대기 입력을 지운다. 이게 남아 있으면 창을 다시 열고
+-- 아무 행의 [변경]을 눌렀을 때 엉뚱한 키가 저장될 수 있다.
+self._T.pendingKeyName = ""
+self.settingsGroup.Enable = true
+if isvalid(self.hideWhileOpen) then
+	self.hideWhileOpen.Enable = false
+end
+self:RefreshFromDraft()
+-- PlayerInputBridge가 이 알림을 받아 캐릭터 입력을 막는다.
+_SettingsManager:NotifyUIOpened()
+log("[SettingsLogic] Opened")
+end
+
+@ExecSpace("ClientOnly")
+method void CloseImmediate()
+if isvalid(self.settingsGroup) then
+	self.settingsGroup.Enable = false
+end
+if isvalid(self.hideWhileOpen) then
+	self.hideWhileOpen.Enable = true
+end
+self.isOpen = false
+self.waitingAction = ""
+self._T.pendingKeyName = ""
+self:HideNotice()
+_SettingsManager:NotifyUIClosed()
+log("[SettingsLogic] Closed")
+end
+
+@ExecSpace("ClientOnly")
+method void RefreshFromDraft()
+-- [수정] draft나 그 하위 표가 없을 때 그냥 인덱싱하면 여기서 에러가 나고,
+-- 그러면 아래 키 행 갱신이 통째로 건너뛰어져 화면이 옛 값에 멈춘다.
+local draft = _SettingsManager:GetDraft()
+if draft == nil then
+	log("[SettingsLogic] draft를 읽을 수 없어 화면을 갱신하지 못했다")
+	return
+end
+
+if draft.volume ~= nil then
+	if draft.volume.bgm ~= nil then
+		if self.sliderBgm ~= nil then self.sliderBgm.Value = draft.volume.bgm end
+		if self.valueBgm ~= nil then self.valueBgm.Text = tostring(draft.volume.bgm) end
+	end
+	if draft.volume.sfx ~= nil then
+		if self.sliderSfx ~= nil then self.sliderSfx.Value = draft.volume.sfx end
+		if self.valueSfx ~= nil then self.valueSfx.Text = tostring(draft.volume.sfx) end
+	end
+end
+
+if self._T.slots ~= nil then
+	for _, slot in ipairs(self._T.slots) do
+		-- [수정] 입력을 받는 중인 행은 표시와 아이콘을 그대로 둔다.
+		-- 예전에는 저장 완료("applied") 알림이 올 때 이 함수가 대기 중인 행의
+		-- "[K]" 표시까지 지워서, 아직 [변경]을 누르지 않은 입력값이 화면에서
+		-- 사라졌다. 두 번 누르기 모드가 사실상 쓸 수 없던 이유다.
+		local isWaiting = (self.waitingAction ~= "" and slot.action == self.waitingAction)
+		if slot.text ~= nil then
+			slot.text.Text = self:TextForSlot(slot)
+		end
+		if isWaiting == false and isvalid(slot.icon) then
+			slot.icon.Enable = false
+		end
+	end
+end
+
+if self.syncValueText ~= nil then
+	self.syncValueText.Text = self:FormatSync(self:GetSyncOffsetMs())
+end
+end
+
+@ExecSpace("ClientOnly")
+method void OnBgmChanged(SliderValueChangedEvent event)
+-- 값 반영은 SettingsManager가, 실제 볼륨은 _SoundChannels가 이벤트를 받아 처리한다.
+_SettingsManager:SetDraftVolume("bgm", math.floor(event.Value + 0.5))
+end
+
+@ExecSpace("ClientOnly")
+method void OnSfxChanged(SliderValueChangedEvent event)
+_SettingsManager:SetDraftVolume("sfx", math.floor(event.Value + 0.5))
+end
+
+@ExecSpace("ClientOnly")
+method void OnSfxReleased(UITouchEndDragEvent event)
+-- 값 변경 이벤트에 미리듣기를 걸면 드래그 중 초당 수십 번 재생되므로
+-- 손을 놓는 순간에만 1회 재생한다.
+_SoundChannels:PreviewSfx()
+end
+
+@ExecSpace("ClientOnly")
+method void OnKeyButtonClick(table slot)
+-- ==============================================================
+-- confirmWithButton = false (한 번 누르기)
+--   [변경] 클릭 → 키 입력을 받기 시작. 칸의 글자는 건드리지 않는다.
+--   키 입력 → 바로 반영 + 저장.
+--   대기 중에 [변경]을 다시 누르면 취소.
+--
+-- confirmWithButton = true (두 번 누르기, OnBeginPlay의 기본값)
+--   [변경] 클릭 → 대기 시작 → 키 입력(칸에 미리 표시, 저장 안 함)
+--   → [변경] 다시 클릭 → 그때 반영 + 저장.
+-- ==============================================================
+if self.waitingAction == slot.action then
+	if self._T.confirmWithButton == false then
+		-- 한 번 누르기 모드: 같은 버튼을 다시 누르면 대기 취소
+		self:CancelWaiting()
+		self:ShowNotice("키 변경을 취소했습니다")
+		return
+	end
+	if self._T.pendingKeyName == "" then
+		self:ShowNotice("먼저 변경할 키를 누르세요")
+		return
+	end
+	self:CommitPendingKey()
+	return
+end
+
+-- [변경] 다른 행이 대기 중이었으면 그 행을 먼저 마무리하고 넘어온다.
+-- 예전에는 CancelWaiting으로 버려서, 1번 행에 키를 넣어 둔 채 2번 행의
+-- [변경]을 누르면 1번 행이 예전 값으로 되돌아갔다.
+if self.waitingAction ~= "" then
+	self:EndWaiting(true)
+end
+
+self.waitingAction = slot.action
+self._T.pendingKeyName = ""
+-- [수정] 어느 행이 입력을 받는 중인지 보이게 한다. 기준값을 GetKeyName(저장된
+-- 값)에서 draft로 바꿨다. 저장 왕복이 끝나기 전에 [변경]을 누르면 방금 바꾼
+-- 키 대신 옛 키가 칸에 다시 나타나던 문제를 없앤다.
+if slot.text ~= nil then
+	slot.text.Text = self:TextForSlot(slot)
+end
+if isvalid(slot.icon) then
+	slot.icon.Enable = true
+end
+if self._T.confirmWithButton then
+	self:ShowNotice("변경할 키를 누른 뒤 [변경]을 다시 누르세요. (ESC: 취소)")
+else
+	self:ShowNotice("변경할 키를 누르세요. (ESC: 취소)")
+end
+end
+
+@ExecSpace("ClientOnly")
+method boolean CommitPendingKey()
+-- [추가] 미리 받아 둔 키를 실제로 반영하고 저장한다.
+-- 반환값: draft에 값이 들어가 저장까지 요청했으면 true.
+local action = self.waitingAction
+local newName = self._T.pendingKeyName
+if action == "" then return false end
+if newName == "" then return false end
+
+local slot = self:SlotByAction(action)
+if slot ~= nil and isvalid(slot.icon) then
+	slot.icon.Enable = false
+end
+self.waitingAction = ""
+self._T.pendingKeyName = ""
+
+-- SetDraftKey가 "keys" 이벤트를 발행하고, OnSettingsChanged가 표시를 갱신한다.
+_SettingsManager:SetDraftKey(action, newName)
+
+-- [추가] draft에 실제로 들어갔는지 확인한다. 액션 이름이 설정 데이터에 없거나
+-- 매니저가 거절하면 이벤트가 오지 않는데, 칸에는 대기 중에 써 둔 "[K]"가
+-- 남아 있어 저장된 것처럼 보였다(= 데이터에는 없는데 UI만 바뀐 상태).
+-- 이제는 실제 값으로 되돌리고 실패를 알린다.
+local stored = self:DraftKeyOf(action)
+if stored ~= newName then
+	if slot ~= nil and slot.text ~= nil then
+		slot.text.Text = self:DisplayOf(stored)
+	end
+	log("[SettingsLogic] SetDraftKey 실패: " .. tostring(action) .. " = " .. tostring(newName)
+		.. " (draft의 현재 값: " .. tostring(stored) .. ")")
+	self:ShowNotice("이 항목은 저장할 수 없습니다")
+	return false
+end
+
+-- [추가] "keys" 이벤트를 발행하지 않는 구현에서도 바꾼 값이 화면에 남도록
+-- 여기서 한 번 더 직접 쓴다. 이벤트가 오면 같은 값을 다시 쓰므로 무해하다.
+if slot ~= nil and slot.text ~= nil then
+	slot.text.Text = self:DisplayOf(newName)
+end
+
+-- 저장. 결과는 "applied" / "applyFailed" 이벤트로 돌아온다(OnSettingsChanged).
+if _SettingsManager:HasUnsavedChanges() then
+	_SettingsManager:Apply()
+else
+	self:ShowNotice("변경되었습니다")
+end
+return true
+end
+
+@ExecSpace("ClientOnly")
+method boolean EndWaiting(boolean keepChange)
+-- [추가] 대기 상태를 끝낸다.
+--   keepChange = true  : 받아 둔 키가 있으면 저장하고 끝낸다(값을 버리지 않는다)
+--   keepChange = false : 원래 키로 되돌린다
+-- ESC로 명시적으로 취소할 때만 false를 쓴다. 다른 행으로 넘어가거나
+-- 창을 닫는 것은 "취소"가 아니므로 값을 지키는 쪽이 맞다.
+-- 반환값: 이 호출로 저장이 일어났으면 true(부른 쪽의 안내 문구 판단에 쓴다).
+if self.waitingAction == "" then return false end
+if keepChange and self._T.pendingKeyName ~= "" then
+	return self:CommitPendingKey()
+end
+self:CancelWaiting()
+return false
+end
+
+@ExecSpace("ClientOnly")
+method void CancelWaiting()
+-- ESC / 다른 행으로 이동 / 창 닫기: 미리 표시된 키를 버리고 원래 키로 되돌린다.
+if self.waitingAction == "" then return end
+local slot = self:SlotByAction(self.waitingAction)
+self.waitingAction = ""
+self._T.pendingKeyName = ""
+if slot == nil then return end
+if slot.text ~= nil then
+	slot.text.Text = self:DisplayOf(self:DraftKeyOf(slot.action))
+end
+if isvalid(slot.icon) then
+	slot.icon.Enable = false
+end
+end
+
+@ExecSpace("ClientOnly")
+method void OnGlobalKeyDown(KeyDownEvent event)
+if self.waitingAction ~= "" then
+	self:HandleRebindKeyDown(event)
+	return
+end
+if self.isOpen and _SettingsManager:KeyNameFromCode(event.key) == "Escape" then
+	self:OnCloseClick()
+end
+end
+
+@ExecSpace("ClientOnly")
+method string FindVisibleActionUsingKey(string keyName, string excludingAction)
+-- [추가] 이 화면에 실제로 보이는 3행(1번 입력/2번 입력/확인) 중에서만
+-- 같은 키를 쓰는 액션을 찾는다. 없으면 "".
+-- [수정] 비교 기준을 GetKeyName(저장된 값)에서 draft로 바꿨다. 예전에는
+-- 1번 행을 A→K로 바꾼 직후(저장 왕복이 진행 중일 때) 2번 행에 A를 넣으려 하면,
+-- 저장된 값에는 1번이 아직 A로 남아 있어서 "이미 사용 중"으로 거절됐다.
+if self._T == nil or self._T.slots == nil then return "" end
+for _, slot in ipairs(self._T.slots) do
+	local a = slot.action
+	if a ~= nil and a ~= "" and a ~= excludingAction then
+		if self:DraftKeyOf(a) == keyName then
+			return a
+		end
+	end
+end
+return ""
+end
+
+@ExecSpace("ClientOnly")
+method void HandleRebindKeyDown(KeyDownEvent event)
+local action = self.waitingAction
+local newName = _SettingsManager:KeyNameFromCode(event.key)
+
+if newName == "Escape" then
+	self:CancelWaiting()
+	self:ShowNotice("키 변경을 취소했습니다")
+	return
+end
+
+-- [변경] 거절돼도 대기 상태는 유지한다. 다른 키를 바로 다시 누를 수 있게.
+-- [추가] 매핑되지 않은 키 코드는 ""/nil로 온다. 그대로 pendingKeyName에 넣으면
+-- 빈 문자열이 저장돼 그 행의 키가 사라지므로 먼저 걸러낸다.
+if newName == nil or newName == "" then
+	self:ShowNotice("인식할 수 없는 키입니다")
+	return
+end
+if _SettingsManager:IsKeyAllowed(newName) == false then
+	self:ShowNotice("이 키는 사용할 수 없습니다")
+	return
+end
+
+-- [변경] 중복 검사는 이 화면에 보이는 3행끼리만 한다.
+-- SettingsManager:FindActionUsingKey는 8개 액션을 전부 훑는데,
+-- MoveLeft/MoveRight 등 캐릭터 조작 키는 이 화면에 없어서 플레이어가
+-- 비울 수가 없다. 그래서 A(=MoveLeft 기본값)나 D(=MoveRight 기본값)를
+-- 넣으려 하면 영영 거절당한다.
+if self:FindVisibleActionUsingKey(newName, action) ~= "" then
+	self:ShowNotice("이미 사용 중인 키입니다")
+	return
+end
+
+self._T.pendingKeyName = newName
+
+if self._T.confirmWithButton == false then
+	-- 한 번 누르기: 누른 그 자리에서 반영 + 저장
+	self:CommitPendingKey()
+	return
+end
+
+-- 두 번 누르기: 칸에 미리 보여 주기만 하고, 저장은 [변경]을 다시 눌렀을 때.
+local slot = self:SlotByAction(action)
+if slot ~= nil and slot.text ~= nil then
+	slot.text.Text = self:WaitingTextOf(newName)
+end
+self:ShowNotice("[변경]을 다시 누르면 저장됩니다")
+end
+
+@ExecSpace("ClientOnly")
+method void OnRevertKeysClick()
+-- "되돌리기"는 키 설정 섹션의 버튼이므로 키만 기본값으로 돌린다.
+-- SettingsManager에는 키 전용 초기화가 없어, 볼륨을 먼저 기억해 두고
+-- 전체 초기화 후 볼륨만 되돌려 놓는다(SettingsManager 수정 없이 처리).
+self:CancelWaiting()
+
+-- [수정] 예전에는 bgm/sfx/voice를 이름으로 하나씩 읽어 되돌렸다. draft에
+-- voice가 없는 구성에서는 SetDraftVolume("voice", nil)이 되어 여기서 에러가
+-- 나고, 그러면 아래 RefreshFromDraft와 Apply가 실행되지 않아 화면은 초기화된
+-- 것처럼 보이는데 데이터에는 저장되지 않았다. 지금은 있는 항목만 옮긴다.
+local draft = _SettingsManager:GetDraft()
+local savedVolume = {}
+if draft ~= nil and draft.volume ~= nil then
+	for name, value in pairs(draft.volume) do
+		savedVolume[name] = value
+	end
+end
+
+_SettingsManager:RestoreDraftDefaults()
+for name, value in pairs(savedVolume) do
+	if value ~= nil then
+		_SettingsManager:SetDraftVolume(name, value)
+	end
+end
+
+self:RefreshFromDraft()
+
+-- [변경] 되돌린 값을 저장까지 한다. 예전에는 draft만 바꿔서, 되돌리기를
+-- 누른 뒤 창을 닫으면 OnCloseClick의 RevertDraftToSaved가 예전 키를 도로
+-- 불러왔다(= 되돌리기가 먹히지 않았다). 키 변경이 즉시 저장되는 지금
+-- 방식과도 맞춘다.
+if _SettingsManager:HasUnsavedChanges() then
+	_SettingsManager:Apply()
+end
+self:ShowNotice("키 설정을 기본값으로 되돌렸습니다")
+end
+
+@ExecSpace("ClientOnly")
+method integer GetSyncOffsetMs()
+-- SettingsManager가 syncOffsetMs를 지원하면 그 값을, 아니면 로컬 값을 쓴다.
+local draft = _SettingsManager:GetDraft()
+if draft ~= nil and draft.syncOffsetMs ~= nil then
+	return draft.syncOffsetMs
+end
+return self.localSyncOffsetMs
+end
+
+@ExecSpace("ClientOnly")
+method void SetSyncOffsetMs(integer ms)
+local clamped = math.max(self.syncMinMs, math.min(self.syncMaxMs, ms))
+self.localSyncOffsetMs = clamped
+
+-- [수정] 예전에는 GetDraft()가 준 표를 draft.syncOffsetMs = ... 로 직접 고쳤다.
+-- 매니저의 변경 추적을 건너뛰기 때문에 HasUnsavedChanges()가 false로 남아
+-- Apply()가 이 값을 저장하지 않고, 다음 RefreshFromDraft에서 예전 값으로
+-- 되돌아갔다("UI에서도 유지되지 않고 데이터로도 저장되지 않는" 바로 그 증상).
+-- 매니저에 setter가 있으면 그쪽으로 보내 정상 저장 경로를 타게 한다.
+if _SettingsManager.SetDraftSyncOffsetMs ~= nil then
+	_SettingsManager:SetDraftSyncOffsetMs(clamped)
+elseif _SettingsManager.SetDraftValue ~= nil then
+	_SettingsManager:SetDraftValue("syncOffsetMs", clamped)
+else
+	local draft = _SettingsManager:GetDraft()
+	if draft ~= nil and draft.syncOffsetMs ~= nil then
+		draft.syncOffsetMs = clamped
+		log("[SettingsLogic] syncOffsetMs setter가 없어 draft를 직접 고쳤다 — 저장되지 않을 수 있다")
+	end
+end
+end
+
+@ExecSpace("ClientOnly")
+method string FormatSync(integer ms)
+if ms > 0 then
+	return "+" .. tostring(ms) .. "ms"
+end
+return tostring(ms) .. "ms"
+end
+
+@ExecSpace("ClientOnly")
+method void OnSyncAdjustClick()
+-- TODO: 원래 "조절하기"는 비트에 맞춰 입력을 받아 오프셋을 계산하는
+-- 보정 화면을 여는 버튼이다. 그 화면이 아직 없어서, 값을 직접 확인할 수
+-- 있도록 클릭마다 syncStepMs 만큼 올리고 상한을 넘으면 하한으로 돌아가는
+-- 임시 동작을 넣어 두었다.
+local nextValue = self:GetSyncOffsetMs() + self.syncStepMs
+if nextValue > self.syncMaxMs then
+	nextValue = self.syncMinMs
+end
+self:SetSyncOffsetMs(nextValue)
+if self.syncValueText ~= nil then
+	self.syncValueText.Text = self:FormatSync(self:GetSyncOffsetMs())
+end
+end
+
+@ExecSpace("ClientOnly")
+method void OnApplyClick()
+-- [수정] 대기 중이던 입력을 먼저 저장한다. 그 과정에서 이미 저장이 일어났다면
+-- "변경된 내용이 없습니다"로 안내를 덮어쓰지 않는다. 예전에는 키를 바꾸고
+-- [적용하기]를 누르면 저장은 됐는데도 "변경된 내용이 없습니다"가 떠서
+-- 저장이 안 된 것처럼 보였다.
+local committed = self:EndWaiting(true)
+if _SettingsManager:HasUnsavedChanges() == false then
+	if committed == false then
+		self:ShowNotice("변경된 내용이 없습니다")
+	end
+	return
+end
+-- 결과는 "applied" / "applyFailed" 이벤트로 돌아온다(OnSettingsChanged).
+_SettingsManager:Apply()
+end
+
+@ExecSpace("ClientOnly")
+method void OnCloseClick()
+-- [변경] 닫을 때 되돌리지 않고 저장한다.
+-- 예전에는 RevertDraftToSaved로 되돌렸는데, 저장 왕복(Apply → 서버 →
+-- ReceiveSaveResult)이 끝나기 전에 창을 닫으면 saved가 아직 옛 값이라
+-- 방금 바꾼 키가 통째로 날아갔다. 키는 [변경]에서 이미 저장되므로,
+-- 여기서는 아직 저장 안 된 것(볼륨 등)만 마저 저장하고 닫는다.
+self:EndWaiting(true)
+if _SettingsManager:HasUnsavedChanges() then
+	_SettingsManager:Apply()
+end
+self.localSyncOffsetMs = self:GetSyncOffsetMs()
+self:CloseImmediate()
+end
+
+@ExecSpace("ClientOnly")
+method void OnSettingsChanged(SettingsChangedEvent event)
+if event.kind == "volume" then
+	local draft = _SettingsManager:GetDraft()
+	if draft ~= nil and draft.volume ~= nil then
+		if event.name == "bgm" and self.valueBgm ~= nil then
+			self.valueBgm.Text = tostring(draft.volume.bgm)
+		elseif event.name == "sfx" and self.valueSfx ~= nil then
+			self.valueSfx.Text = tostring(draft.volume.sfx)
+		end
+	end
+	-- voice는 이 화면에 없으므로 무시(저장값은 그대로 유지된다)
+
+elseif event.kind == "keys" then
+	local slot = self:SlotByAction(event.name)
+	if slot ~= nil and slot.text ~= nil then
+		-- [수정] TextForSlot이 "이 행이 대기 중인지"까지 보고 글자를 정한다.
+		-- 예전에는 무조건 draft 값으로 덮어써서, 다른 행을 저장할 때 온
+		-- 이벤트만으로도 대기 중인 행의 미리 표시가 지워졌다.
+		slot.text.Text = self:TextForSlot(slot)
+	end
+
+elseif event.kind == "loaded" or event.kind == "restored" or event.kind == "reverted" then
+	self:RefreshFromDraft()
+
+elseif event.kind == "applied" then
+	-- 이 화면은 "적용하기"와 "닫기"가 따로 있으므로 저장 후에도 닫지 않는다.
+	self:RefreshFromDraft()
+	self:ShowNotice("설정을 저장했습니다")
+
+elseif event.kind == "applyFailed" then
+	-- [추가] 저장이 실패했으면 화면을 실제 값으로 되돌린다. 그러지 않으면
+	-- 저장되지 않은 키가 칸에 남아, 다음에 창을 열 때만 옛 값으로 돌아간다.
+	self:RefreshFromDraft()
+	self:ShowNotice("저장에 실패했습니다. 다시 시도해 주세요")
+end
+end
+
+@ExecSpace("ClientOnly")
+method void ShowNotice(string message)
+-- 안내 문구 슬롯은 선택이다. 연결하지 않았으면 로그만 남긴다.
+if isvalid(self.noticeLabel) == false then
+	log("[SettingsLogic] " .. message)
+	return
+end
+if self.noticeText ~= nil then
+	self.noticeText.Text = message
+end
+self.noticeLabel.Enable = true
+
+if self.noticeTimerId ~= 0 then
+	_TimerService:ClearTimer(self.noticeTimerId)
+	self.noticeTimerId = 0
+end
+self.noticeTimerId = _TimerService:SetTimerOnce(function()
+	self.noticeTimerId = 0
+	self:HideNotice()
+end, self.noticeDurationSeconds)
+end
+
+@ExecSpace("ClientOnly")
+method void HideNotice()
+if isvalid(self.noticeLabel) then
+	self.noticeLabel.Enable = false
+end
+end
+
+end
