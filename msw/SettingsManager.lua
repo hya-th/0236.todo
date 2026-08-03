@@ -265,6 +265,7 @@ end
 
 @ExecSpace("Client")
 method void ReceiveLoadedSettings(table merged)
+self:EnsureInit()
 self._T.saved = merged
 self._T.draft = self:CloneSettings(merged)
 self.isLoaded = true
@@ -275,6 +276,7 @@ end
 
 @ExecSpace("Client")
 method void ReceiveSaveResult(boolean success, string message)
+self:EnsureInit()
 if success then
 	self._T.saved = self:CloneSettings(self._T.draft)
 	self:Emit("applied", "", "")

@@ -100,9 +100,9 @@ method void OnBeginPlay()
 -- false = 프로퍼티 패널의 값을 그대로 사용
 self._T.forceRhythmActions = true
 
--- false = [변경] 누르고 키를 누르면 그 자리에서 저장 (한 번 누르기)
--- true  = 키를 누른 뒤 [변경]을 한 번 더 눌러야 저장 (두 번 누르기)
-self._T.confirmWithButton = false
+-- true  = 키를 누른 뒤 [변경]을 눌러야 저장 (변경 버튼이 저장 시점)
+-- false = [변경] 누르고 키를 누르면 그 자리에서 저장
+self._T.confirmWithButton = true
 
 -- 입력만 받아 두고 아직 저장하지 않은 키("" = 없음)
 self._T.pendingKeyName = ""
@@ -572,12 +572,14 @@ end
 
 @ExecSpace("ClientOnly")
 method void OnCloseClick()
--- 이 화면에는 확인 다이얼로그가 없으므로, 저장하지 않은 변경은 되돌리고 닫는다.
--- RevertDraftToSaved가 "reverted" 이벤트를 발행하고 PlayerInputBridge가
--- 그것을 받아 실제 키 배치까지 원래대로 복구한다.
+-- [변경] 닫을 때 되돌리지 않고 저장한다.
+-- 예전에는 RevertDraftToSaved로 되돌렸는데, 저장 왕복(Apply → 서버 →
+-- ReceiveSaveResult)이 끝나기 전에 창을 닫으면 saved가 아직 옛 값이라
+-- 방금 바꾼 키가 통째로 날아갔다. 키는 [변경]에서 이미 저장되므로,
+-- 여기서는 아직 저장 안 된 것(볼륨 등)만 마저 저장하고 닫는다.
 self:CancelWaiting()
 if _SettingsManager:HasUnsavedChanges() then
-	_SettingsManager:RevertDraftToSaved()
+	_SettingsManager:Apply()
 end
 self.localSyncOffsetMs = self:GetSyncOffsetMs()
 self:CloseImmediate()
