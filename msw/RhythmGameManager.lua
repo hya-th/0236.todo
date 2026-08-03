@@ -80,6 +80,23 @@ return n
 end
 
 @ExecSpace("ClientOnly")
+method string SafeItem(any row, string column)
+-- [추가] CSV에 없는 열을 GetItem으로 읽으면 NotFound 오류로 전투가 끊긴다.
+-- (예: SkillData에 EffectType 열이 없는 구성)
+-- 열 구성이 스크립트와 달라도 진행은 되어야 하므로, 없으면 ""를 돌려준다.
+if row == nil then return "" end
+local value = ""
+local ok = pcall(function()
+	value = row:GetItem(column)
+end)
+if ok == false then
+	return ""
+end
+if value == nil then return "" end
+return value
+end
+
+@ExecSpace("ClientOnly")
 method table ParseIdList(string s)
 -- "{Pattern_001,Pattern_002}" → { "Pattern_001", "Pattern_002" }
 local t = {}
@@ -233,12 +250,12 @@ else
 	if row == nil then
 		log("[RhythmGameManager] StageData에 " .. tostring(self.stageId) .. " 행 없음")
 	else
-		monsterId = row:GetItem("Monster") or ""
-		bgmId = row:GetItem("BGMRUID") or ""
-		self.stageTime = self:ToNumber(row:GetItem("Time"), 0)
-		self.hpMultiplier = self:ToNumber(row:GetItem("HP_Multiplier"), 1)
-		self.attackMultiplier = self:ToNumber(row:GetItem("Attack_Multiplier"), 1)
-		self.attackInterval = self:ToNumber(row:GetItem("AttackInterval"), 0)
+		monsterId = self:SafeItem(row, "Monster") or ""
+		bgmId = self:SafeItem(row, "BGMRUID") or ""
+		self.stageTime = self:ToNumber(self:SafeItem(row, "Time"), 0)
+		self.hpMultiplier = self:ToNumber(self:SafeItem(row, "HP_Multiplier"), 1)
+		self.attackMultiplier = self:ToNumber(self:SafeItem(row, "Attack_Multiplier"), 1)
+		self.attackInterval = self:ToNumber(self:SafeItem(row, "AttackInterval"), 0)
 	end
 end
 self.timeLeft = self.stageTime
@@ -260,12 +277,12 @@ elseif monsterId ~= "" then
 	if row == nil then
 		log("[RhythmGameManager] MonsterData에 " .. monsterId .. " 행 없음")
 	else
-		monsterRUID = row:GetItem("MonsterRUID") or ""
-		baseHP = self:ToNumber(row:GetItem("HP"), 100)
-		self.attackEffectRUID = row:GetItem("AttackEffectRUID") or ""
-		self.hitEffectRUID = row:GetItem("HitEffectRUID") or ""
-		self.deathEffectRUID = row:GetItem("DeathEffectRUID") or ""
-		self.patterns = self:ParseIdList(row:GetItem("BossPatternIDs"))
+		monsterRUID = self:SafeItem(row, "MonsterRUID") or ""
+		baseHP = self:ToNumber(self:SafeItem(row, "HP"), 100)
+		self.attackEffectRUID = self:SafeItem(row, "AttackEffectRUID") or ""
+		self.hitEffectRUID = self:SafeItem(row, "HitEffectRUID") or ""
+		self.deathEffectRUID = self:SafeItem(row, "DeathEffectRUID") or ""
+		self.patterns = self:ParseIdList(self:SafeItem(row, "BossPatternIDs"))
 	end
 end
 
@@ -289,8 +306,8 @@ elseif bgmId ~= "" then
 		self.bgmRUID = bgmId
 		log("[RhythmGameManager] MusicData에 " .. bgmId .. " 행 없음 — RUID 직접 사용 시도")
 	else
-		self.bgmRUID = row:GetItem("RUID") or ""
-		self.bpm = self:ToNumber(row:GetItem("BPM"), self.bpm)
+		self.bgmRUID = self:SafeItem(row, "RUID") or ""
+		self.bpm = self:ToNumber(self:SafeItem(row, "BPM"), self.bpm)
 	end
 end
 
@@ -319,7 +336,7 @@ if pt == nil then return self.defaultAttackInterval end
 local row = pt:FindRow("Id", first)
 if row == nil then return self.defaultAttackInterval end
 
-return self:ToNumber(row:GetItem("AttackInterval"), self.defaultAttackInterval)
+return self:ToNumber(self:SafeItem(row, "AttackInterval"), self.defaultAttackInterval)
 end
 
 @ExecSpace("ClientOnly")
@@ -606,7 +623,7 @@ if patternId ~= "" then
 	if pt ~= nil then
 		local row = pt:FindRow("Id", patternId)
 		if row ~= nil then
-			local atk = row:GetItem("Attack")
+			local atk = self:SafeItem(row, "Attack")
 			local n = nil
 			if atk ~= nil and atk ~= "" then n = tonumber(atk) end
 			if n ~= nil then
@@ -665,7 +682,7 @@ if row == nil then
 	return
 end
 
-local effectType = row:GetItem("EffectType")
+local effectType = self:SafeItem(row, "EffectType")
 if effectType == nil or effectType == "" then effectType = "Damage" end
 
 -- 강화 반영 스탯 조회(PlayerData). pd 없으면 0.
@@ -673,8 +690,15 @@ local pd = nil
 local lp = _UserService.LocalPlayer
 if lp ~= nil then pd = lp.PlayerData end
 local function stat(name)
-	if pd ~= nil then return pd:GetSkillStat(skillId, name) end
-	return 0
+	-- [변경] GetSkillStat도 CSV 열을 읽으므로 같은 이유로 터질 수 있다.
+	if pd == nil then return 0 end
+	local v = 0
+	local ok = pcall(function()
+		v = pd:GetSkillStat(skillId, name)
+	end)
+	if ok == false then return 0 end
+	if v == nil then return 0 end
+	return v
 end
 
 log("[RhythmGameManager] 스킬 " .. tostring(skillId) .. " (" .. effectType .. ")")
@@ -731,7 +755,7 @@ elseif effectType == "Combo" then
 
 else
 	local dmg = stat("Damage")
-	if dmg <= 0 then dmg = self:ParseAttack(row:GetItem("Damage")) end
+	if dmg <= 0 then dmg = self:ParseAttack(self:SafeItem(row, "Damage")) end
 	local total = self:CalcOutgoing(dmg)
 	if self.markActive then
 		total = total + self.markDamage
