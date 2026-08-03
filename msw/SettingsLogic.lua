@@ -54,19 +54,12 @@ property ButtonComponent btnClose = "nil -- 닫기 버튼"
 property Entity noticeLabel = "nil -- (선택) 안내 문구 엔티티"
 property TextGUIRendererComponent noticeText = "nil -- (선택) 안내 문구 텍스트"
 
--- 화면의 세 행이 어떤 액션에 대응하는지. SettingsManager의 actionNames에
--- 있는 이름을 써야 한다. 나중에 액션 이름을 Input1/Input2/Confirm 등으로
--- 바꾸면 코드 대신 여기 값만 고치면 된다.
 -- 화면의 세 행이 대응하는 액션 이름. SettingsManager의 actionNames에 있어야 한다.
--- 이 값을 바꾸면 에디터의 프로퍼티 패널에서도 같이 바꿔야 반영된다
--- (프로퍼티 값은 프로젝트에 저장되어 파일 기본값을 덮어쓴다).
+-- OnBeginPlay의 _T.forceRhythmActions가 켜져 있으면 여기 값과 무관하게
+-- BeatLeft/BeatRight/BeatConfirm으로 고정된다.
 property string action1 = "BeatLeft" -- 1번 입력
 property string action2 = "BeatRight" -- 2번 입력
 property string action3 = "BeatConfirm" -- 확인
-
--- 위 세 값이 프로퍼티 패널에서 다른 액션으로 저장돼 있어도 리듬 액션으로
--- 바로잡는다. 이 화면에 다른 액션을 붙이려면 false로 끈다.
-property boolean forceRhythmActions = true
 
 property string waitingLabel = "입력 대기" -- 키가 비어 있을 때 키 박스에 표시할 문구
 property number noticeDurationSeconds = 1.6 -- 안내 문구 표시 시간
@@ -82,12 +75,6 @@ property integer syncMaxMs = 100
 
 property boolean isOpen = false
 property string waitingAction = "" -- 입력 대기 중인 액션("" = 없음)
-property string pendingKeyName = "" -- 입력만 받아 두고 아직 저장 안 한 키("" = 없음)
-
--- 키 변경을 몇 번 눌러 끝낼지.
---   false(기본) = [변경] 누르고 키를 누르면 그 자리에서 저장 (한 번 누르기)
---   true        = 키를 누른 뒤 [변경]을 한 번 더 눌러야 저장 (두 번 누르기)
-property boolean confirmWithButton = false
 property integer noticeTimerId = 0
 
 property any sliderBgmHandler = nil
@@ -103,6 +90,23 @@ property any settingsHandler = nil
 
 @ExecSpace("ClientOnly")
 method void OnBeginPlay()
+-- ==============================================================
+-- [변경] 런타임 상태와 동작 설정은 프로퍼티가 아니라 self._T에 둔다.
+-- 에디터에 새 프로퍼티를 추가하면 기존 프로젝트에 등록되지 않아
+-- "cannot set X, no such field"로 죽는 일이 있어서, 선언이 필요 없는
+-- _T를 쓴다. 아래 두 값이 이 화면의 동작 스위치다.
+-- ==============================================================
+-- true  = action1~3 프로퍼티에 뭐가 들어 있든 리듬 액션으로 고정
+-- false = 프로퍼티 패널의 값을 그대로 사용
+self._T.forceRhythmActions = true
+
+-- false = [변경] 누르고 키를 누르면 그 자리에서 저장 (한 번 누르기)
+-- true  = 키를 누른 뒤 [변경]을 한 번 더 눌러야 저장 (두 번 누르기)
+self._T.confirmWithButton = false
+
+-- 입력만 받아 두고 아직 저장하지 않은 키("" = 없음)
+self._T.pendingKeyName = ""
+
 -- 슬롯을 아직 다 연결하지 않아도 멈추지 않는다. 비어 있는 슬롯은 건너뛰고
 -- 무엇이 빠졌는지 로그로 알려주므로 UI를 만들어가며 단계적으로 확인할 수 있다.
 if isvalid(self.settingsGroup) then
@@ -117,7 +121,7 @@ end
 -- 캐릭터 조작 키(A/D/Space)를 만지게 되고, 전투 키는 그대로 남는다.
 -- 프로퍼티 패널을 손대지 않아도 맞게 동작하도록 여기서 바로잡는다.
 -- 다른 액션을 붙이고 싶으면 forceRhythmActions를 false로 끄면 된다.
-if self.forceRhythmActions then
+if self._T.forceRhythmActions then
 	if self.action1 ~= "BeatLeft" or self.action2 ~= "BeatRight" or self.action3 ~= "BeatConfirm" then
 		log("[SettingsLogic] 키 행이 리듬 액션이 아니어서 바로잡음: "
 			.. tostring(self.action1) .. "/" .. tostring(self.action2) .. "/" .. tostring(self.action3)
@@ -338,13 +342,13 @@ method void OnKeyButtonClick(table slot)
 --   → [변경] 다시 클릭 → 그때 반영 + 저장.
 -- ==============================================================
 if self.waitingAction == slot.action then
-	if self.confirmWithButton == false then
+	if self._T.confirmWithButton == false then
 		-- 한 번 누르기 모드: 같은 버튼을 다시 누르면 대기 취소
 		self:CancelWaiting()
 		self:ShowNotice("키 변경을 취소했습니다")
 		return
 	end
-	if self.pendingKeyName == "" then
+	if self._T.pendingKeyName == "" then
 		self:ShowNotice("먼저 변경할 키를 누르세요")
 		return
 	end
@@ -358,11 +362,11 @@ if self.waitingAction ~= "" then
 end
 
 self.waitingAction = slot.action
-self.pendingKeyName = ""
+self._T.pendingKeyName = ""
 if isvalid(slot.icon) then
 	slot.icon.Enable = true
 end
-if self.confirmWithButton then
+if self._T.confirmWithButton then
 	self:ShowNotice("변경할 키를 누른 뒤 [변경]을 다시 누르세요. (ESC: 취소)")
 else
 	self:ShowNotice("변경할 키를 누르세요. (ESC: 취소)")
@@ -373,7 +377,7 @@ end
 method void CommitPendingKey()
 -- [추가] 미리 받아 둔 키를 실제로 반영하고 저장한다.
 local action = self.waitingAction
-local newName = self.pendingKeyName
+local newName = self._T.pendingKeyName
 if action == "" then return end
 if newName == "" then return end
 
@@ -382,7 +386,7 @@ if slot ~= nil and isvalid(slot.icon) then
 	slot.icon.Enable = false
 end
 self.waitingAction = ""
-self.pendingKeyName = ""
+self._T.pendingKeyName = ""
 
 -- SetDraftKey가 "keys" 이벤트를 발행하고, OnSettingsChanged가 표시를 갱신한다.
 _SettingsManager:SetDraftKey(action, newName)
@@ -401,7 +405,7 @@ method void CancelWaiting()
 if self.waitingAction == "" then return end
 local slot = self:SlotByAction(self.waitingAction)
 self.waitingAction = ""
-self.pendingKeyName = ""
+self._T.pendingKeyName = ""
 if slot == nil then return end
 if slot.text ~= nil then
 	slot.text.Text = self:DisplayOf(_SettingsManager:GetDraft().keys[slot.action])
@@ -465,9 +469,9 @@ if self:FindVisibleActionUsingKey(newName, action) ~= "" then
 	return
 end
 
-self.pendingKeyName = newName
+self._T.pendingKeyName = newName
 
-if self.confirmWithButton == false then
+if self._T.confirmWithButton == false then
 	-- 한 번 누르기: 누른 그 자리에서 반영 + 저장
 	self:CommitPendingKey()
 	return
