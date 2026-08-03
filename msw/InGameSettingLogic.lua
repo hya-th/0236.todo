@@ -370,7 +370,9 @@ if self.processing then return end
 _ConfirmDialogController:Show(
 	"스테이지로 돌아가기",
 	"지금 나가면 이번 전투는 패배로 처리됩니다. 돌아갈까요?",
-	self.ExecuteHome,
+	-- [수정] self.ExecuteHome을 그대로 넘기면 나중에 callback()으로 불릴 때
+	-- 수신자가 없어 self가 nil이 된다. 클로저로 감싸 self를 붙들어 둔다.
+	function() self:ExecuteHome() end,
 	nil
 )
 end
@@ -381,7 +383,8 @@ if self.processing then return end
 _ConfirmDialogController:Show(
 	"스테이지 재도전",
 	"현재 스테이지를 처음부터 다시 시작할까요?",
-	self.ExecuteRetry,
+	-- [수정] 위와 같은 이유로 클로저로 감싼다.
+	function() self:ExecuteRetry() end,
 	nil
 )
 end
